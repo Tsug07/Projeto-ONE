@@ -43,7 +43,7 @@ MODELOS = {
         "mensagem_padrao": "Prorrogação Contrato"
     },
     "Cobranca": {
-        "colunas": ["Codigo", "Contato Onvio", "Grupo Onvio", "Nome", "Vencimento"],
+        "colunas": ["Código", "Empresa", "Contato Onvio", "Grupo Onvio", "Valor da Parcela", "Data de Vencimento", "Carta de Aviso"],
         "mensagem_padrao": "Cobranca"
     },
     
@@ -308,6 +308,31 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                             'nome_grupo': nome_grupo,
                             'detalhes': [{'pessoas': pessoas, 'vencimentos': vencimentos}]
                         }
+                elif modelo == "Cobranca":
+                    codigo, nome, nome_contato, nome_grupo, valores, vencimentos, cartas = row[:7]
+                    
+                    if not isinstance(cartas, (int, float)) or not 1 <= int(cartas) <= 6:
+                        atualizar_log(f"Linha ignorada: Carta de aviso inválida ({cartas}) na linha {row[0]}", cor="vermelho")
+                        continue
+                    # Se o código da empresa já está no dicionário, adiciona as novas informações à lista
+                    if codigo in dados:
+                        dados[codigo]['detalhes'].append({
+                            'valores': valores,
+                            'vencimentos': vencimentos
+                        })
+                    else:
+                        # Caso seja a primeira vez que aparece, inicializa a entrada no dicionário
+                        dados[codigo] = {
+                            'nome': nome,
+                            'nome_contato': nome_contato,
+                            'nome_grupo': nome_grupo,
+                            'detalhes': [{
+                                'valores': valores,
+                                'vencimentos': vencimentos
+                            }],
+                            'cartas': cartas
+                        }
+                
                 else:  # Modelo ALL
                     pessoas, nome_contato, nome_grupo = row[1:4]
                     dados[codigo] = {
@@ -335,6 +360,29 @@ def extrair_dados(dados, modelo):
             pessoas.append(pessoas_lista)
             vencimentos.append(vencimentos_lista)
         return codigos, nome_contatos, nome_grupos, pessoas, vencimentos
+    elif modelo == "Cobranca":
+        nome, valores, vencimentos, cartas = [], [], [], []
+        # Iterar sobre o dicionário, onde a chave é o código da empresa
+        for cod, info in dados.items():
+            codigos.append(cod)  # A chave é o código da empresa
+            nome.append(info['nome'])  # Extrair o nome
+            nome_contatos.append(info['nome_contato'])  # Extrair o nome do contato
+            nome_grupos.append(info['nome_grupo'])  # Extrair o nome do grupo
+            
+            # Para valores e vencimentos, precisamos iterar sobre a lista de detalhes
+            valor_total = []
+            vencimento_total = []
+            
+            for detalhe in info['detalhes']:
+                valor_total.append(detalhe['valores'])
+                vencimento_total.append(detalhe['vencimentos'])
+            
+            valores.append(valor_total)  # Adicionar a lista de valores associados a esse código
+            vencimentos.append(vencimento_total)  # Adicionar a lista de vencimentos associados a esse código
+            cartas.append(info['cartas'])  
+        
+        return codigos, nome, nome_contatos, nome_grupos, valores, vencimentos, cartas 
+    
     else:  # Modelo ALL
         empresas = []
         for cod, info in dados.items():
@@ -359,12 +407,24 @@ def salvar_mensagens(mensagens):
     with open("mensagens.json", "w", encoding="utf-8") as f:
         json.dump(mensagens, f, ensure_ascii=False, indent=4)
 
-def mensagem_padrao(modelo, pessoas=None, vencimentos=None):
+def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=None, nome_empresa=None):
     mensagens = carregar_mensagens()
     msg = mensagens.get(mensagem_selecionada.get(), MODELOS[modelo]["mensagem_padrao"])
     if modelo == "ProrContrato" and pessoas and vencimentos:
         pv = "\n".join([f"{p} se encerrará em {v}" for p, v in zip(pessoas, vencimentos)])
         msg = msg.format(pessoas_vencimentos=pv)
+    elif modelo == "Cobranca" and valores and vencimentos and nome_empresa and carta is not None:
+        # Formatar valores com vírgula como separador decimal
+        valores_formatados = [f"{valor:.2f}".replace('.', ',') for valor in valores]
+        total_formatado = f"{sum(valores):.2f}".replace('.', ',')
+        # Formatar parcelas
+        parcelas = "\n".join([f"Valor: R$ {valor} | Vencimento: {venc}" for valor, venc in zip(valores_formatados, vencimentos)])
+        # Selecionar a mensagem com base no número da carta
+        msg_key = f"Cobranca_{carta}" if f"Cobranca_{carta}" in mensagens else "Cobranca_1"  # Fallback para carta 1
+        msg = mensagens.get(msg_key, mensagens.get("Cobranca_1", "Mensagem de cobrança padrão não encontrada."))
+        msg = msg.format(nome_empresa=nome_empresa, parcelas=parcelas, total=total_formatado)
+    else:
+        msg = mensagens.get(msg_key, MODELOS[modelo]["mensagem_padrao"])
     return msg
 
 # Funções de Interface
@@ -382,6 +442,8 @@ def atualizar_mensagem_padrao(*args):
     modelo = modelo_selecionado.get()
     if modelo:
         mensagem_padrao_key = MODELOS[modelo]["mensagem_padrao"]
+        if modelo == "Cobranca":
+            mensagem_padrao_key = "Cobranca"
         mensagem_selecionada.set(mensagem_padrao_key)
 
 def iniciar_processamento():
@@ -427,11 +489,29 @@ def processar_dados(excel, modelo, linha_inicial):
             porcentagem = ((i + 1) / total_contatos) * 100
             atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"\nProcessando Empresa: {cod}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
-            mensagem = mensagem_padrao(modelo, p, v)
+            mensagem = mensagem_padrao(modelo, pessoas=p, vencimentos=v)
             if enviar_mensagem(driver, contato, grupo, mensagem, cod, p[0]):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
             time.sleep(5)
+
+    elif modelo == "Cobranca":
+        codigos, nomes, nome_contatos, nome_grupos, valores, vencimentos, cartas = extrair_dados(dados, modelo)
+        total_contatos = len(codigos)
+        for i, (cod, nome_emp, contato, grupo, p, v, carta) in enumerate(zip(codigos, nomes, nome_contatos, nome_grupos, valores, vencimentos, cartas)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                return
+            linha_atual = linha_inicial + i
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"\nProcessando contato da empresa {cod} - {nome_emp}: Contato: {contato}, Grupo: {grupo}, Aviso nº: {carta}\n", cor="azul")
+            mensagem = mensagem_padrao(modelo, valores=p, vencimentos=v, carta=carta, nome_empresa=nome_emp)
+            if enviar_mensagem(driver, contato, grupo, mensagem, cod, nome_emp):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
+            time.sleep(5)
+    
     else:  # Modelo ALL
         codigos, empresas, nome_contatos, nome_grupos = extrair_dados(dados, modelo)
         total_contatos = len(codigos)
