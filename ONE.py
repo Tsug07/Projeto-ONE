@@ -43,11 +43,136 @@ MODELOS = {
         "mensagem_padrao": "Prorrogação Contrato"
     },
     "Cobranca": {
-        "colunas": ["Codigo", "Contato Onvio", "Grupo Onvio", "Nome", "Vencimento"],
+        "colunas": ["Código", "Empresa", "Contato Onvio", "Grupo Onvio", "Valor da Parcela", "Data de Vencimento", "Carta de Aviso"],
         "mensagem_padrao": "Cobranca"
     },
-    
+    "ComuniCertificado": {
+       "colunas": ["Codigo", "Empresa", "Contato Onvio", "Grupo Onvio", "CNPJ", "Vencimento", "Carta de Aviso"],
+        "mensagem_padrao": "Cobranca" 
+    }
 }
+
+def esperar_carregamento_completo(driver):
+    try:
+        WebDriverWait(driver, 60).until(
+            lambda d: d.execute_script('return document.readyState') == 'complete'
+        )
+        atualizar_log("Página completamente carregada.")
+        return True
+    except Exception as e:
+        atualizar_log(f"Erro ao esperar carregamento: {str(e)}", cor="vermelho")
+        return False
+
+def focar_barra_mensagem_enviar(driver, mensagem):
+    try:
+        elemento_alvo = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[1]/div/div[2]/div[2]/div[1]'))
+        )
+        if elemento_alvo.get_attribute('data-placeholder') == "Mensagem":
+            elemento_alvo.click()
+            atualizar_log("Barra de Mensagem encontrada e clicada!")
+            paragrafos = re.split(r'\n+', mensagem.strip())
+            for i, paragrafo in enumerate(paragrafos):
+                if i > 0:
+                    ActionChains(driver).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
+                    time.sleep(0.5)
+                if cancelar:
+                    atualizar_log("Processamento cancelado!", cor="azul")
+                    return False
+                ActionChains(driver).send_keys(paragrafo).perform()
+                time.sleep(0.5)
+            atualizar_log("Mensagem formatada inserida com sucesso.")
+            
+            # Clicar no botão de enviar
+            try:
+                botao_enviar = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[3]/div[1]/button'))
+                )
+                botao_enviar.click()
+                atualizar_log("Botão de enviar clicado com sucesso.")
+            except:
+                atualizar_log("Erro ao clicar no botão de enviar.", cor="vermelho")
+                return False
+                
+            # Clicar no botão de desconsiderar
+            try:
+                botao_desconsiderar = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, '//*[@id="ChatHeader"]/div[2]/div[1]/div[3]/div[1]/button/div'))
+                )
+                botao_desconsiderar.click()
+                atualizar_log("Botão de DESCONSIDERAR clicado com sucesso.")
+                WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.XPATH, '/html/body/div[4]'))
+                )
+                desconsiderar = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, '/html/body/div[4]/div/div/div[3]/button[2]'))
+                )
+                desconsiderar.click()
+                time.sleep(2)
+                atualizar_log("Mensagem Desconsiderada com Sucesso!", cor="azul")
+            except:
+                atualizar_log("Erro ao desconsiderar mensagem.", cor="vermelho")
+                return False
+                
+            return True
+        atualizar_log("Barra de mensagem não encontrada.")
+        return False
+    except Exception as e:
+        atualizar_log(f"Erro ao focar na barra de mensagem: {str(e)}")
+        return False
+
+def encontrar_e_clicar_barra_contatos(driver, contato, grupo):
+    try:
+        if not esperar_carregamento_completo(driver):
+            return False
+        if grupo.upper() != "NONE":
+            focar_pagina(driver, aba="grupo")
+            if focar_barra_endereco_e_navegar(driver, grupo):
+                atualizar_log("Navegação aba grupo.")
+                return processar_resultados_busca(driver)
+        elif contato.upper() != "NONE":
+            focar_pagina(driver, aba="contato")
+            if focar_barra_endereco_e_navegar(driver, contato):
+                atualizar_log("Navegação aba contato.")
+                return processar_resultados_busca(driver)
+        atualizar_log("Falha na navegação ou busca.", cor="vermelho")
+        return False
+    except Exception as e:
+        atualizar_log(f"Erro ao interagir com a página: {str(e)}", cor="vermelho")
+        return False
+
+def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
+    if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
+        time.sleep(6)
+        if focar_barra_mensagem_enviar(driver, mensagem):
+            atualizar_log(f"\nAviso enviado para {contato or grupo}, {codigo} - {identificador}.\n", cor="verde")
+            focar_pagina_geral(driver)
+            return True
+        else:
+            atualizar_log(f"Falha ao enviar mensagem para {contato or grupo}. Tentando aba alternativa.", cor="vermelho")
+            # Tentar aba alternativa
+            if grupo.upper() != "NONE" and contato.upper() != "NONE":
+                focar_pagina(driver, aba="contato")
+                if focar_barra_endereco_e_navegar(driver, contato):
+                    if processar_resultados_busca(driver):
+                        atualizar_log("Contato encontrado na aba Contatos.", cor="azul")
+                        time.sleep(6)
+                        if focar_barra_mensagem_enviar(driver, mensagem):
+                            atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
+                            focar_pagina_geral(driver)
+                            return True
+            elif contato.upper() != "NONE" and grupo.upper() != "NONE":
+                focar_pagina(driver, aba="grupo")
+                if focar_barra_endereco_e_navegar(driver, grupo):
+                    if processar_resultados_busca(driver):
+                        atualizar_log("Grupo encontrado na aba Grupos.", cor="azul")
+                        time.sleep(6)
+                        if focar_barra_mensagem_enviar(driver, mensagem):
+                            atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
+                            focar_pagina_geral(driver)
+                            return True
+            atualizar_log(f"Falha ao enviar mensagem para {contato or grupo} em ambas as abas.", cor="vermelho")
+    return False
 
 # Funções de Navegação e Automação (reutilizadas do main.py e prorcontrato.py)
 def abrir_chrome_com_url(url):
@@ -126,51 +251,6 @@ def processar_resultados_busca(driver):
         atualizar_log(f"Erro ao processar resultados da busca: {str(e)}")
         return False
 
-def focar_barra_mensagem_enviar(driver, mensagem):
-    try:
-        elemento_alvo = WebDriverWait(driver, 10).until(
-            EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[1]/div/div[2]/div[2]/div[1]'))
-        )
-        if elemento_alvo.get_attribute('data-placeholder') == "Mensagem":
-            elemento_alvo.click()
-            atualizar_log("Barra de Mensagem encontrada e clicada!")
-            paragrafos = re.split(r'\n+', mensagem.strip())
-            for i, paragrafo in enumerate(paragrafos):
-                if i > 0:
-                    ActionChains(driver).key_down(Keys.SHIFT).send_keys(Keys.ENTER).key_up(Keys.SHIFT).perform()
-                    time.sleep(0.5)
-                if cancelar:
-                    atualizar_log("Processamento cancelado!", cor="azul")
-                    return False
-                ActionChains(driver).send_keys(paragrafo).perform()
-                time.sleep(0.5)
-            atualizar_log("Mensagem formatada inserida com sucesso.")
-            return True
-        atualizar_log("Barra de mensagem não encontrada.")
-        return False
-    except Exception as e:
-        atualizar_log(f"Erro ao focar na barra de mensagem: {str(e)}")
-        return False
-
-def encontrar_e_clicar_barra_contatos(driver, contato, grupo):
-    try:
-        time.sleep(5)
-        if grupo.upper() != "NONE":
-            focar_pagina(driver, aba="grupo")
-            if focar_barra_endereco_e_navegar(driver, grupo):
-                atualizar_log("Navegação aba grupo.")
-                return processar_resultados_busca(driver)
-        elif contato.upper() != "NONE":
-            focar_pagina(driver, aba="contato")
-            if focar_barra_endereco_e_navegar(driver, contato):
-                atualizar_log("Navegação aba contato.")
-                return processar_resultados_busca(driver)
-        atualizar_log("Falha na navegação ou busca.", cor="vermelho")
-        return False
-    except Exception as e:
-        atualizar_log(f"Erro ao interagir com a página: {str(e)}", cor="vermelho")
-        return False
-
 def focar_pagina(driver, aba="contato"):
     try:
         xpath = '//*[@id="react-tabs-0"]' if aba == "contato" else '//*[@id="react-tabs-2"]'
@@ -221,7 +301,7 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
         for row in sheet.iter_rows(min_row=linha_inicial, values_only=True):
             if row and len(row) >= len(colunas):
                 codigo = row[0]
-                if modelo == "Prorrogação Contrato":
+                if modelo == "ProrContrato":
                     nome_contato, nome_grupo, pessoas, vencimentos = row[1:5]
                     if codigo in dados:
                         dados[codigo]['detalhes'].append({'pessoas': pessoas, 'vencimentos': vencimentos})
@@ -231,6 +311,31 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                             'nome_grupo': nome_grupo,
                             'detalhes': [{'pessoas': pessoas, 'vencimentos': vencimentos}]
                         }
+                elif modelo == "Cobranca":
+                    codigo, nome, nome_contato, nome_grupo, valores, vencimentos, cartas = row[:7]
+                    
+                    if not isinstance(cartas, (int, float)) or not 1 <= int(cartas) <= 6:
+                        atualizar_log(f"Linha ignorada: Carta de aviso inválida ({cartas}) na linha {row[0]}", cor="vermelho")
+                        continue
+                    # Se o código da empresa já está no dicionário, adiciona as novas informações à lista
+                    if codigo in dados:
+                        dados[codigo]['detalhes'].append({
+                            'valores': valores,
+                            'vencimentos': vencimentos
+                        })
+                    else:
+                        # Caso seja a primeira vez que aparece, inicializa a entrada no dicionário
+                        dados[codigo] = {
+                            'nome': nome,
+                            'nome_contato': nome_contato,
+                            'nome_grupo': nome_grupo,
+                            'detalhes': [{
+                                'valores': valores,
+                                'vencimentos': vencimentos
+                            }],
+                            'cartas': cartas
+                        }
+                
                 else:  # Modelo ALL
                     pessoas, nome_contato, nome_grupo = row[1:4]
                     dados[codigo] = {
@@ -247,7 +352,7 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
 
 def extrair_dados(dados, modelo):
     codigos, nome_contatos, nome_grupos = [], [], []
-    if modelo == "Prorrogação Contrato":
+    if modelo == "ProrContrato":
         pessoas, vencimentos = [], []
         for cod, info in dados.items():
             codigos.append(cod)
@@ -258,6 +363,29 @@ def extrair_dados(dados, modelo):
             pessoas.append(pessoas_lista)
             vencimentos.append(vencimentos_lista)
         return codigos, nome_contatos, nome_grupos, pessoas, vencimentos
+    elif modelo == "Cobranca":
+        nome, valores, vencimentos, cartas = [], [], [], []
+        # Iterar sobre o dicionário, onde a chave é o código da empresa
+        for cod, info in dados.items():
+            codigos.append(cod)  # A chave é o código da empresa
+            nome.append(info['nome'])  # Extrair o nome
+            nome_contatos.append(info['nome_contato'])  # Extrair o nome do contato
+            nome_grupos.append(info['nome_grupo'])  # Extrair o nome do grupo
+            
+            # Para valores e vencimentos, precisamos iterar sobre a lista de detalhes
+            valor_total = []
+            vencimento_total = []
+            
+            for detalhe in info['detalhes']:
+                valor_total.append(detalhe['valores'])
+                vencimento_total.append(detalhe['vencimentos'])
+            
+            valores.append(valor_total)  # Adicionar a lista de valores associados a esse código
+            vencimentos.append(vencimento_total)  # Adicionar a lista de vencimentos associados a esse código
+            cartas.append(info['cartas'])  
+        
+        return codigos, nome, nome_contatos, nome_grupos, valores, vencimentos, cartas 
+    
     else:  # Modelo ALL
         empresas = []
         for cod, info in dados.items():
@@ -282,12 +410,24 @@ def salvar_mensagens(mensagens):
     with open("mensagens.json", "w", encoding="utf-8") as f:
         json.dump(mensagens, f, ensure_ascii=False, indent=4)
 
-def mensagem_padrao(modelo, pessoas=None, vencimentos=None):
+def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=None, nome_empresa=None):
     mensagens = carregar_mensagens()
     msg = mensagens.get(mensagem_selecionada.get(), MODELOS[modelo]["mensagem_padrao"])
-    if modelo == "Prorrogação Contrato" and pessoas and vencimentos:
+    if modelo == "ProrContrato" and pessoas and vencimentos:
         pv = "\n".join([f"{p} se encerrará em {v}" for p, v in zip(pessoas, vencimentos)])
         msg = msg.format(pessoas_vencimentos=pv)
+    elif modelo == "Cobranca" and valores and vencimentos and nome_empresa and carta is not None:
+        # Formatar valores com vírgula como separador decimal
+        valores_formatados = [f"{valor:.2f}".replace('.', ',') for valor in valores]
+        total_formatado = f"{sum(valores):.2f}".replace('.', ',')
+        # Formatar parcelas
+        parcelas = "\n".join([f"Valor: R$ {valor} | Vencimento: {venc}" for valor, venc in zip(valores_formatados, vencimentos)])
+        # Selecionar a mensagem com base no número da carta
+        msg_key = f"Cobranca_{carta}" if f"Cobranca_{carta}" in mensagens else "Cobranca_1"  # Fallback para carta 1
+        msg = mensagens.get(msg_key, mensagens.get("Cobranca_1", "Mensagem de cobrança padrão não encontrada."))
+        msg = msg.format(nome=nome_empresa, parcelas=parcelas, total=total_formatado)
+    else:
+        msg = mensagens.get(msg_key, MODELOS[modelo]["mensagem_padrao"])
     return msg
 
 # Funções de Interface
@@ -305,6 +445,8 @@ def atualizar_mensagem_padrao(*args):
     modelo = modelo_selecionado.get()
     if modelo:
         mensagem_padrao_key = MODELOS[modelo]["mensagem_padrao"]
+        if modelo == "Cobranca":
+            mensagem_padrao_key = "Cobranca"
         mensagem_selecionada.set(mensagem_padrao_key)
 
 def iniciar_processamento():
@@ -339,7 +481,7 @@ def processar_dados(excel, modelo, linha_inicial):
         atualizar_log("Nenhum dado para processar.", cor="vermelho")
         return
     total_linhas = openpyxl.load_workbook(excel).active.max_row - linha_inicial + 1
-    if modelo == "Prorrogação Contrato":
+    if modelo == "ProrContrato":
         codigos, nome_contatos, nome_grupos, pessoas, vencimentos = extrair_dados(dados, modelo)
         total_contatos = len(codigos)
         for i, (cod, contato, grupo, p, v) in enumerate(zip(codigos, nome_contatos, nome_grupos, pessoas, vencimentos)):
@@ -349,12 +491,32 @@ def processar_dados(excel, modelo, linha_inicial):
             linha_atual = linha_inicial + i
             porcentagem = ((i + 1) / total_contatos) * 100
             atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
-            atualizar_log(f"\nProcessando {cod}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
-            mensagem = mensagem_padrao(modelo, p, v)
+            atualizar_log(f"Linha: {linha_atual}")
+            atualizar_log(f"\nProcessando Empresa: {cod}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
+            mensagem = mensagem_padrao(modelo, pessoas=p, vencimentos=v)
             if enviar_mensagem(driver, contato, grupo, mensagem, cod, p[0]):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
             time.sleep(5)
+
+    elif modelo == "Cobranca":
+        codigos, nomes, nome_contatos, nome_grupos, valores, vencimentos, cartas = extrair_dados(dados, modelo)
+        total_contatos = len(codigos)
+        for i, (cod, nome_emp, contato, grupo, p, v, carta) in enumerate(zip(codigos, nomes, nome_contatos, nome_grupos, valores, vencimentos, cartas)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                return
+            linha_atual = linha_inicial + i
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"Linha: {linha_atual}")
+            atualizar_log(f"\nProcessando contato da empresa {cod} - {nome_emp}: Contato: {contato}, Grupo: {grupo}, Aviso nº: {carta}\n", cor="azul")
+            mensagem = mensagem_padrao(modelo, valores=p, vencimentos=v, carta=carta, nome_empresa=nome_emp)
+            if enviar_mensagem(driver, contato, grupo, mensagem, cod, nome_emp):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
+            time.sleep(5)
+    
     else:  # Modelo ALL
         codigos, empresas, nome_contatos, nome_grupos = extrair_dados(dados, modelo)
         total_contatos = len(codigos)
@@ -469,7 +631,7 @@ def main():
     label_modelo.grid(row=0, column=0, pady=5, padx=5, sticky="w")
     combo_modelo = ctk.CTkComboBox(frame_selecao, values=list(MODELOS.keys()), variable=modelo_selecionado)
     combo_modelo.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-    modelo_selecionado.trace("w", atualizar_mensagem_padrao)
+    modelo_selecionado.trace_add("w", atualizar_mensagem_padrao)
 
     label_excel = ctk.CTkLabel(frame_selecao, text="Arquivo Excel:")
     label_excel.grid(row=1, column=0, pady=5, padx=5, sticky="w")
