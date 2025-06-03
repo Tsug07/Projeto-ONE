@@ -25,8 +25,8 @@ Supports multiple models with customizable Excel structures and messages.
 """
 
 # Configuração do tema do customtkinter
-ctk.set_appearance_mode("System")
-ctk.set_default_color_theme("blue")
+ctk.set_appearance_mode("Light")
+ctk.set_default_color_theme("dark-blue")
 
 # Variáveis globais
 cancelar = False
@@ -84,35 +84,35 @@ def focar_barra_mensagem_enviar(driver, mensagem):
             atualizar_log("Mensagem formatada inserida com sucesso.")
             
             # Clicar no botão de enviar
-            try:
-                botao_enviar = WebDriverWait(driver, 10).until(
-                    EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[3]/div[1]/button'))
-                )
-                botao_enviar.click()
-                atualizar_log("Botão de enviar clicado com sucesso.")
-            except:
-                atualizar_log("Erro ao clicar no botão de enviar.", cor="vermelho")
-                return False
+            # try:
+            #     botao_enviar = WebDriverWait(driver, 10).until(
+            #         EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[3]/div[1]/button'))
+            #     )
+            #     botao_enviar.click()
+            #     atualizar_log("Botão de enviar clicado com sucesso.")
+            # except:
+            #     atualizar_log("Erro ao clicar no botão de enviar.", cor="vermelho")
+            #     return False
                 
-            # Clicar no botão de desconsiderar
-            try:
-                botao_desconsiderar = WebDriverWait(driver, 10).until(
-                    EC.element_to_be_clickable((By.XPATH, '//*[@id="ChatHeader"]/div[2]/div[1]/div[3]/div[1]/button/div'))
-                )
-                botao_desconsiderar.click()
-                atualizar_log("Botão de DESCONSIDERAR clicado com sucesso.")
-                WebDriverWait(driver, 5).until(
-                    EC.presence_of_element_located((By.XPATH, '/html/body/div[4]'))
-                )
-                desconsiderar = WebDriverWait(driver, 10).until(
-                    EC.element_to_be_clickable((By.XPATH, '/html/body/div[4]/div/div/div[3]/button[2]'))
-                )
-                desconsiderar.click()
-                time.sleep(2)
-                atualizar_log("Mensagem Desconsiderada com Sucesso!", cor="azul")
-            except:
-                atualizar_log("Erro ao desconsiderar mensagem.", cor="vermelho")
-                return False
+            # # Clicar no botão de desconsiderar
+            # try:
+            #     botao_desconsiderar = WebDriverWait(driver, 10).until(
+            #         EC.element_to_be_clickable((By.XPATH, '//*[@id="ChatHeader"]/div[2]/div[1]/div[3]/div[1]/button/div'))
+            #     )
+            #     botao_desconsiderar.click()
+            #     atualizar_log("Botão de DESCONSIDERAR clicado com sucesso.")
+            #     WebDriverWait(driver, 5).until(
+            #         EC.presence_of_element_located((By.XPATH, '/html/body/div[4]'))
+            #     )
+            #     desconsiderar = WebDriverWait(driver, 10).until(
+            #         EC.element_to_be_clickable((By.XPATH, '/html/body/div[4]/div/div/div[3]/button[2]'))
+            #     )
+            #     desconsiderar.click()
+            #     time.sleep(2)
+            #     atualizar_log("Mensagem Desconsiderada com Sucesso!", cor="azul")
+            # except:
+            #     atualizar_log("Erro ao desconsiderar mensagem.", cor="vermelho")
+            #     return False
                 
             return True
         atualizar_log("Barra de mensagem não encontrada.")
@@ -608,11 +608,18 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
     if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
         time.sleep(6)
         if focar_barra_mensagem_enviar(driver, mensagem):
-            atualizar_log(f"\nAviso enviado para {contato or grupo}, {codigo} - {identificador}.\n", cor="verde")
+            if contato.upper() != "NONE":
+                atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
+            else: 
+                atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
             focar_pagina_geral(driver)
             return True
         else:
-            atualizar_log(f"Falha ao enviar mensagem para {contato or grupo}", cor="vermelho")
+            if contato.upper() != "NONE":
+                atualizar_log(f"Falha ao enviar mensagem para {contato}", cor="vermelho")
+            else: 
+                atualizar_log(f"Falha ao enviar mensagem para {grupo}", cor="vermelho")
+            
     return False
 
 def cancelar_processamento():
@@ -810,7 +817,7 @@ def main():
     log_text.tag_config("azul", foreground="blue")
     log_text.tag_config("timestamp", foreground="gray")
 
-    atualizar_log("Bem-vindo ao AutoMessenger ONE! Selecione um modelo, Excel e clique em 'Iniciar'.", cor="azul")
+    atualizar_log("Bem-vindo ao AutoMessenger ONE! Selecione um modelo, Excel e clique em 'Iniciar'.", cor="verde")
 
     frame_rodape = ctk.CTkFrame(janela, fg_color="transparent")
     frame_rodape.pack(fill="x", padx=10, pady=5)
