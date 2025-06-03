@@ -9,6 +9,7 @@ import re
 import openpyxl
 import customtkinter as ctk
 from selenium import webdriver
+from PIL import Image, ImageTk  # Add PIL for image handling
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -25,8 +26,8 @@ Supports multiple models with customizable Excel structures and messages.
 """
 
 # Configuração do tema do customtkinter
-ctk.set_appearance_mode("System")
-ctk.set_default_color_theme("blue")
+ctk.set_appearance_mode("Dark")
+ctk.set_default_color_theme("dark-blue")
 
 # Variáveis globais
 cancelar = False
@@ -178,7 +179,12 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
 def abrir_chrome_com_url(url):
     encerrar_processos_chrome()
     user_data_dir = r"C:\PerfisChrome\automacao"  # o mesmo caminho usado no passo 1
-
+    profile_dir = os.path.join(user_data_dir, "Profile 1")
+    # Verificar se o diretório do perfil existe
+    if not os.path.exists(profile_dir):
+        atualizar_log(f"Perfil 'Profile 1' não encontrado em {user_data_dir}.", cor="vermelho")
+        atualizar_log("Um novo perfil será criado. Por favor, faça login na página aberta para continuar.", cor="azul")
+        
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
     chrome_options.add_argument("--profile-directory=Profile 1")
@@ -201,10 +207,14 @@ def abrir_chrome_com_url(url):
         return None
 
 def encerrar_processos_chrome():
-    for proc in psutil.process_iter(['name']):
+    for proc in psutil.process_iter(['name', 'cmdline']):
         if proc.info['name'] == 'chrome.exe':
             try:
-                proc.terminate()
+                cmdline = proc.info['cmdline'] or []
+                cmdline_str = ' '.join(cmdline)
+                if '--user-data-dir=C:\\PerfisChrome\\automacao' in cmdline_str and '--profile-directory=Profile 1' in cmdline_str:
+                    proc.terminate()
+                    atualizar_log(f"Processo Chrome de automação (PID: {proc.pid}) encerrado.")
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
     time.sleep(2)
@@ -336,6 +346,18 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                             'cartas': cartas
                         }
                 
+                elif modelo == "ComuniCertificado":
+                    codigo, nome, nome_contato, nome_grupo, cnpj, vencimentos, cartas = row[:7]
+                    # Caso seja a primeira vez que aparece, inicializa a entrada no dicionário
+                    dados[codigo] = {
+                        'nome': nome,
+                        'nome_contato': nome_contato,
+                        'nome_grupo': nome_grupo,
+                        'cnpj': cnpj,
+                        'vencimentos': vencimentos,
+                        'cartas': cartas
+                    }
+                    
                 else:  # Modelo ALL
                     pessoas, nome_contato, nome_grupo = row[1:4]
                     dados[codigo] = {
@@ -386,6 +408,21 @@ def extrair_dados(dados, modelo):
         
         return codigos, nome, nome_contatos, nome_grupos, valores, vencimentos, cartas 
     
+    elif modelo == "ComuniCertificado":
+        nome, cnpjs, vencimentos, cartas = [], [], [], []
+        # Iterar sobre o dicionário, onde a chave é o código da empresa
+        for cod, info in dados.items():
+            codigos.append(cod)  # A chave é o código da empresa
+            nome.append(info['nome'])  # Extrair o nome
+            nome_contatos.append(info['nome_contato'])  # Extrair o nome do contato
+            nome_grupos.append(info['nome_grupo'])  # Extrair o nome do grupo
+        
+            cnpjs.append(info['cnpj'])  # Adicionar a lista de cnpjs associados a esse código
+            vencimentos.append(info['vencimentos'])  # Adicionar a lista de vencimentos associados a esse código
+            cartas.append(info['cartas'])  
+        
+        return codigos, nome, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas
+    
     else:  # Modelo ALL
         empresas = []
         for cod, info in dados.items():
@@ -394,6 +431,19 @@ def extrair_dados(dados, modelo):
             nome_contatos.append(info['nome_contato'])
             nome_grupos.append(info['nome_grupo'])
         return codigos, empresas, nome_contatos, nome_grupos
+    
+def formatar_cnpj(cnpj):
+    # Remover caracteres não numéricos
+    cnpj = ''.join(filter(str.isdigit, cnpj))
+    
+    # Verificar se o CNPJ tem 14 dígitos
+    if len(cnpj) != 14:
+        raise ValueError("CNPJ deve conter 14 dígitos")
+    
+    # Formatar o CNPJ no padrão: XX.XXX.XXX/XXXX-XX
+    cnpj_formatado = f"{cnpj[:2]}.{cnpj[2:5]}.{cnpj[5:8]}/{cnpj[8:12]}-{cnpj[12:]}"
+
+    return cnpj_formatado
 
 # Funções de Mensagem
 def carregar_mensagens():
@@ -410,7 +460,7 @@ def salvar_mensagens(mensagens):
     with open("mensagens.json", "w", encoding="utf-8") as f:
         json.dump(mensagens, f, ensure_ascii=False, indent=4)
 
-def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=None, nome_empresa=None):
+def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=None, cnpj=None, nome_empresa=None):
     mensagens = carregar_mensagens()
     msg = mensagens.get(mensagem_selecionada.get(), MODELOS[modelo]["mensagem_padrao"])
     if modelo == "ProrContrato" and pessoas and vencimentos:
@@ -426,6 +476,13 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
         msg_key = f"Cobranca_{carta}" if f"Cobranca_{carta}" in mensagens else "Cobranca_1"  # Fallback para carta 1
         msg = mensagens.get(msg_key, mensagens.get("Cobranca_1", "Mensagem de cobrança padrão não encontrada."))
         msg = msg.format(nome=nome_empresa, parcelas=parcelas, total=total_formatado)
+    
+    elif modelo == "ComuniCertificado":
+        cnpj_formatado = formatar_cnpj(cnpj)
+         # Selecionar a mensagem com base no número da carta
+        msg_key = f"Certificado_{carta}" if f"Certificado_{carta}" in mensagens else "Certificado_1"  # Fallback para carta 1
+        msg = mensagens.get(msg_key, mensagens.get("Certificado_1", "Mensagem de cobrança padrão não encontrada."))
+        msg = msg.format(nome=nome_empresa, cnpj_formatado=cnpj_formatado, datas=vencimentos)
     else:
         msg = mensagens.get(msg_key, MODELOS[modelo]["mensagem_padrao"])
     return msg
@@ -447,6 +504,8 @@ def atualizar_mensagem_padrao(*args):
         mensagem_padrao_key = MODELOS[modelo]["mensagem_padrao"]
         if modelo == "Cobranca":
             mensagem_padrao_key = "Cobranca"
+        elif modelo == "ComuniCertificado":
+            mensagem_padrao_key = "Certificado"
         mensagem_selecionada.set(mensagem_padrao_key)
 
 def iniciar_processamento():
@@ -466,6 +525,7 @@ def iniciar_processamento():
         return
     atualizar_log("Iniciando processamento...", cor="azul")
     botao_iniciar.configure(state="disabled")
+    botao_iniciar_chrome.configure(state="disabled")  # Desativar o botão de Chrome
     inicializar_arquivo_log()
     thread = threading.Thread(target=processar_dados, args=(excel, modelo, linha))
     thread.start()
@@ -474,7 +534,21 @@ def processar_dados(excel, modelo, linha_inicial):
     url = "https://app.gestta.com.br/attendance/#/chat/contact-list"
     driver = abrir_chrome_com_url(url)
     if not driver:
+        atualizar_log("Não foi possível abrir o Chrome. Processamento abortado.", cor="vermelho")
+        finalizar_programa()
         return
+    # # Verificar se a página está autenticada
+    # try:
+    #     WebDriverWait(driver, 10).until(
+    #         EC.presence_of_element_located((By.XPATH, '//*[@id="trauth-continue-signin-btn"]'))
+    #     )
+    #     atualizar_log("Página autenticada, iniciando processamento.", cor="verde")
+    # except TimeoutException:
+    #     atualizar_log("Falha na autenticação: faça login no Onvio Messenger antes de iniciar o processamento.", cor="vermelho")
+    #     driver.quit()
+    #     finalizar_programa()
+    #     return
+    
     time.sleep(10)
     dados = ler_dados_excel(excel, modelo, linha_inicial)
     if not dados:
@@ -490,7 +564,7 @@ def processar_dados(excel, modelo, linha_inicial):
                 return
             linha_atual = linha_inicial + i
             porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"Linha: {linha_atual}")
             atualizar_log(f"\nProcessando Empresa: {cod}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
             mensagem = mensagem_padrao(modelo, pessoas=p, vencimentos=v)
@@ -508,7 +582,7 @@ def processar_dados(excel, modelo, linha_inicial):
                 return
             linha_atual = linha_inicial + i
             porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"Linha: {linha_atual}")
             atualizar_log(f"\nProcessando contato da empresa {cod} - {nome_emp}: Contato: {contato}, Grupo: {grupo}, Aviso nº: {carta}\n", cor="azul")
             mensagem = mensagem_padrao(modelo, valores=p, vencimentos=v, carta=carta, nome_empresa=nome_emp)
@@ -517,6 +591,24 @@ def processar_dados(excel, modelo, linha_inicial):
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
             time.sleep(5)
     
+    elif modelo == "ComuniCertificado":
+        codigos, nomes, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas = extrair_dados(dados, modelo)
+        total_contatos = len(codigos)
+        for i, (cod, nome_emp, contato, grupo, c, v, carta) in enumerate(zip(codigos, nomes, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                return
+            linha_atual = linha_inicial + i
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"Linha: {linha_atual}")
+            atualizar_log(f"\nProcessando contato da empresa {cod} - {nome_emp}: Contato: {contato}, Grupo: {grupo}, Aviso nº: {carta}\n", cor="azul")
+            mensagem = mensagem_padrao(modelo, vencimentos=v, carta=carta, cnpj=c, nome_empresa=nome_emp)
+            if enviar_mensagem(driver, contato, grupo, mensagem, cod, nome_emp):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
+            time.sleep(5)
+            
     else:  # Modelo ALL
         codigos, empresas, nome_contatos, nome_grupos = extrair_dados(dados, modelo)
         total_contatos = len(codigos)
@@ -526,7 +618,7 @@ def processar_dados(excel, modelo, linha_inicial):
                 return
             linha_atual = linha_inicial + i
             porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"\nProcessando {cod} - {emp}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
             mensagem = mensagem_padrao(modelo)
             if enviar_mensagem(driver, contato, grupo, mensagem, cod, emp):
@@ -541,11 +633,18 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
     if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
         time.sleep(6)
         if focar_barra_mensagem_enviar(driver, mensagem):
-            atualizar_log(f"\nAviso enviado para {contato or grupo}, {codigo} - {identificador}.\n", cor="verde")
+            if contato.upper() != "NONE":
+                atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
+            else: 
+                atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
             focar_pagina_geral(driver)
             return True
         else:
-            atualizar_log(f"Falha ao enviar mensagem para {contato or grupo}", cor="vermelho")
+            if contato.upper() != "NONE":
+                atualizar_log(f"Falha ao enviar mensagem para {contato}", cor="vermelho")
+            else: 
+                atualizar_log(f"Falha ao enviar mensagem para {grupo}", cor="vermelho")
+            
     return False
 
 def cancelar_processamento():
@@ -561,6 +660,7 @@ def finalizar_programa():
     messagebox.showinfo("Processo Finalizado", "Processamento concluído!")
     botao_fechar.configure(state="normal")
     botao_iniciar.configure(state="normal")
+    botao_iniciar_chrome.configure(state="normal")  # Reativar o botão de Chrome
 
 def abrir_log():
     if log_file_path and os.path.exists(log_file_path):
@@ -570,7 +670,7 @@ def abrir_log():
 
 def inicializar_arquivo_log():
     global log_file_path
-    log_dir = os.path.join(os.path.expanduser('~'), 'Documents', 'AutoMessenger_Logs')
+    log_dir = os.path.join(os.path.expanduser('~'), 'Documents', 'AutoMessengerONE_Logs')
     os.makedirs(log_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file_path = os.path.join(log_dir, f"automessenger_one_log_{timestamp}.txt")
@@ -604,25 +704,57 @@ def atualizar_progresso(valor, texto=""):
     progresso_texto.configure(text=texto)
     janela.update_idletasks()
 
+def iniciar_chrome_automacao():
+    atualizar_log("Iniciando configuração do Chrome de automação...", cor="azul")
+    url = "https://onvio.com.br/staff/#/dashboard-core-center"
+    driver = abrir_chrome_com_url(url)
+    if driver:
+        atualizar_log("Chrome de automação aberto com sucesso. Por favor faça o login, entre no messenger e inicie o processamento.", cor="azul")
+        # Não fechamos o driver aqui, deixando-o aberto para o usuário fazer login
+    else:
+        atualizar_log("Falha ao abrir o Chrome de automação.", cor="vermelho")
 
 # Interface Principal
 def main():
-    global janela, caminho_excel, modelo_selecionado, mensagem_selecionada, botao_iniciar, botao_fechar, log_text, progresso, progresso_texto, entrada_linha_inicial
+    global janela, caminho_excel, modelo_selecionado, mensagem_selecionada, botao_iniciar, botao_fechar, log_text, progresso, progresso_texto, entrada_linha_inicial, botao_iniciar_chrome
 
     janela = ctk.CTk()
     janela.title("AutoMessenger ONE")
     janela.geometry("700x600")
     janela.resizable(True, True)
 
+    # Set the window icon (use .ico for best compatibility on Windows)
+    try:
+        janela.iconbitmap("logoOne.ico")  # Replace with your .ico file name
+    except:
+        # Fallback to .png if .ico fails (works on some platforms)
+        icon_image = ctk.CTkImage(Image.open("logoOne.png"), size=(32, 32))  # Adjust size as needed
+        janela.iconphoto(False, icon_image)
+    
     caminho_excel = ctk.StringVar()
     modelo_selecionado = ctk.StringVar()
     mensagem_selecionada = ctk.StringVar()
     progresso = ctk.DoubleVar()
 
-    frame_titulo = ctk.CTkFrame(janela)
+    # Add the logo to the title frame
+    frame_titulo = ctk.CTkFrame(janela, fg_color="transparent")
     frame_titulo.pack(fill="x", padx=10, pady=10)
+    
+    # Load and display the logo image
+    try:
+        logo_image = ctk.CTkImage(Image.open("logoOne.png"), size=(50, 50))  # Adjust size as needed
+        logo_label = ctk.CTkLabel(frame_titulo, image=logo_image, text="")
+        logo_label.pack(pady=(5, 0))
+    except Exception as e:
+        print(f"Error loading logo image: {e}")  # Log error if image fails to load
+
     titulo = ctk.CTkLabel(frame_titulo, text="AutoMessenger ONE", font=("Roboto", 16, "bold"))
-    titulo.pack(pady=10)
+    titulo.pack(pady=(0, 5))
+    
+    # frame_titulo = ctk.CTkFrame(janela)
+    # frame_titulo.pack(fill="x", padx=10, pady=10)
+    # titulo = ctk.CTkLabel(frame_titulo, text="AutoMessenger ONE", font=("Roboto", 16, "bold"))
+    # titulo.pack(pady=10)
 
     frame_selecao = ctk.CTkFrame(janela)
     frame_selecao.pack(fill="x", padx=10, pady=5)
@@ -631,7 +763,8 @@ def main():
     label_modelo.grid(row=0, column=0, pady=5, padx=5, sticky="w")
     combo_modelo = ctk.CTkComboBox(frame_selecao, values=list(MODELOS.keys()), variable=modelo_selecionado)
     combo_modelo.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-    modelo_selecionado.trace_add("w", atualizar_mensagem_padrao)
+    # modelo_selecionado.trace("w", atualizar_mensagem_padrao)
+    modelo_selecionado.trace_add("write", lambda *args: atualizar_mensagem_padrao())
 
     label_excel = ctk.CTkLabel(frame_selecao, text="Arquivo Excel:")
     label_excel.grid(row=1, column=0, pady=5, padx=5, sticky="w")
@@ -709,6 +842,10 @@ def main():
     
     botao_editor = ctk.CTkButton(frame_mensagem, text="Adicionar/Editar Mensagem", command=abrir_editor_mensagem)
     botao_editor.grid(row=0, column=2, padx=5, pady=5)
+    
+    # Novo botão para iniciar Chrome
+    botao_iniciar_chrome = ctk.CTkButton(frame_mensagem, text="Iniciar Chrome de Automação", command=iniciar_chrome_automacao)
+    botao_iniciar_chrome.grid(row=0, column=3, padx=5, pady=5)
 
     frame_botoes = ctk.CTkFrame(janela)
     frame_botoes.pack(fill="x", padx=10, pady=5)
@@ -735,14 +872,14 @@ def main():
     frame_log.pack(pady=10, padx=10, fill="both", expand=True)
     label_log = ctk.CTkLabel(frame_log, text="Log de execução:")
     label_log.pack(anchor="w", padx=5, pady=5)
-    log_text = ctk.CTkTextbox(frame_log, wrap="word", height=250, width=650)
+    log_text = ctk.CTkTextbox(frame_log, wrap="word", height=250, width=650, fg_color="#F5F5F5")
     log_text.pack(fill="both", expand=True, padx=5, pady=5)
     log_text.tag_config("vermelho", foreground="red")
     log_text.tag_config("verde", foreground="green")
     log_text.tag_config("azul", foreground="blue")
     log_text.tag_config("timestamp", foreground="gray")
 
-    atualizar_log("Bem-vindo ao AutoMessenger ONE! Selecione um modelo, Excel e clique em 'Iniciar'.", cor="azul")
+    atualizar_log("Bem-vindo ao AutoMessenger ONE! Selecione um modelo, Excel e clique em 'Iniciar'.", cor="verde")
 
     frame_rodape = ctk.CTkFrame(janela, fg_color="transparent")
     frame_rodape.pack(fill="x", padx=10, pady=5)
