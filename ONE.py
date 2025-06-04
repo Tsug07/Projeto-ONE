@@ -35,6 +35,10 @@ log_file_path = None
 
 # Modelos suportados
 MODELOS = {
+    "ONE": {
+        "colunas": ["Código", "Empresa", "Contato Onvio", "Grupo Onvio", "Colaborador", "Evento", "Prazo"],
+        "mensagem_padrao": "ONEmessage"
+    },
     "ALL": {
         "colunas": ["Codigo", "EMPRESAS", "CONTATO ONVIO", "GRUPO ONVIO"],
         "mensagem_padrao": "Mensagem Padrão"
@@ -692,7 +696,7 @@ def atualizar_log(mensagem, cor=None):
         log_text.insert("end", mensagem + "\n", "azul")
     else:
         log_text.insert("end", timestamp, "timestamp")
-        log_text.insert("end", mensagem + "\n")
+        log_text.insert("end", mensagem + "\n", "preto")
     log_text.configure(state="disabled")
     log_text.see("end")
     if log_file_path and os.path.exists(log_file_path):
@@ -878,6 +882,7 @@ def main():
     log_text.tag_config("verde", foreground="green")
     log_text.tag_config("azul", foreground="blue")
     log_text.tag_config("timestamp", foreground="gray")
+    log_text.tag_config("preto", foreground="black")
 
     atualizar_log("Bem-vindo ao AutoMessenger ONE! Selecione um modelo, Excel e clique em 'Iniciar'.", cor="verde")
 
