@@ -674,7 +674,8 @@ def abrir_log():
 
 def inicializar_arquivo_log():
     global log_file_path
-    log_dir = os.path.join(os.path.expanduser('~'), 'Documents', 'AutoMessengerONE_Logs')
+    # log_dir = os.path.join(os.path.expanduser('~'), 'AutoMessengerONE_Logs')
+    log_dir = os.path.join(os.path.dirname(__file__), 'AutoMessengerONE_Logs')
     os.makedirs(log_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file_path = os.path.join(log_dir, f"automessenger_one_log_{timestamp}.txt")
