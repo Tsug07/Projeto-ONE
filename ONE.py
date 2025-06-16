@@ -35,12 +35,16 @@ log_file_path = None
 
 # Modelos suportados
 MODELOS = {
+    # "ONE": {
+    #     "colunas": ["Código", "Empresa", "Contato Onvio", "Grupo Onvio", "Colaborador", "Evento", "Prazo"],
+    #     "mensagem_padrao": "ONEmessage"
+    # },
     "ONE": {
-        "colunas": ["Código", "Empresa", "Contato Onvio", "Grupo Onvio", "Colaborador", "Evento", "Prazo"],
+        "colunas": ["Código", "Empresa", "Contato Onvio", "Grupo Onvio", "Caminho"],
         "mensagem_padrao": "ONEmessage"
     },
     "ALL": {
-        "colunas": ["Codigo", "EMPRESAS", "CONTATO ONVIO", "GRUPO ONVIO"],
+        "colunas": ["Codigo", "Empresa", "Contato Onvio", "Grupo Onvio"],
         "mensagem_padrao": "Mensagem Padrão"
     },
     "ProrContrato": {
@@ -68,7 +72,7 @@ def esperar_carregamento_completo(driver):
         atualizar_log(f"Erro ao esperar carregamento: {str(e)}", cor="vermelho")
         return False
 
-def focar_barra_mensagem_enviar(driver, mensagem):
+def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, path=None):
     try:
         elemento_alvo = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[1]/div/div[2]/div[2]/div[1]'))
@@ -98,7 +102,48 @@ def focar_barra_mensagem_enviar(driver, mensagem):
             except:
                 atualizar_log("Erro ao clicar no botão de enviar.", cor="vermelho")
                 return False
+            if modelo == "ONE":
+                try:
+                    # Verificar se o caminho é absoluto, se não for, construir o caminho completo
+                    if not os.path.isabs(path):
+                        caminho_base = r"C:\Users\VM001\Documents\Relatorios"
+                        caminho_completo = os.path.join(caminho_base, path)
+                    else:
+                        caminho_completo = path
+                     # Verificar se o arquivo existe
+                    if not os.path.exists(caminho_completo):
+                        atualizar_log(f"Arquivo não encontrado: {caminho_completo}", cor="vermelho")
+                        return False
+                    
+                    atualizar_log(f"Tentando anexar: {caminho_completo}")
+                    
+                    # Procurar pelo input de arquivo
+                    input_file = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='file']"))
+                    )
+                    
+                    # Enviar o caminho do arquivo para o input
+                    input_file.send_keys(caminho_completo)
+                    atualizar_log(f"Arquivo anexado com sucesso: {caminho_completo}")
+                    
+                    time.sleep(3)  # Aguardar processamento do arquivo
+                except Exception as e:
+                    atualizar_log(f"Erro ao anexar arquivo: {e}", cor="vermelho")
                 
+                time.sleep(3)
+                
+                try:
+                    botao_enviar_arquivo = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[3]/div/div[4]/div[2]/div/button'))
+                    )
+                    botao_enviar_arquivo.click()
+                    atualizar_log("Botão de enviar arquivo clicado com sucesso.")
+                except:
+                    atualizar_log("Erro ao clicar no botão de enviar arquivo.", cor="vermelho")
+                    return False
+               
+                
+            time.sleep(3)       
             # Clicar no botão de desconsiderar
             try:
                 botao_desconsiderar = WebDriverWait(driver, 10).until(
@@ -113,7 +158,7 @@ def focar_barra_mensagem_enviar(driver, mensagem):
                     EC.element_to_be_clickable((By.XPATH, '/html/body/div[4]/div/div/div[3]/button[2]'))
                 )
                 desconsiderar.click()
-                time.sleep(2)
+                time.sleep(4)
                 atualizar_log("Mensagem Desconsiderada com Sucesso!", cor="azul")
             except:
                 atualizar_log("Erro ao desconsiderar mensagem.", cor="vermelho")
@@ -146,10 +191,10 @@ def encontrar_e_clicar_barra_contatos(driver, contato, grupo):
         atualizar_log(f"Erro ao interagir com a página: {str(e)}", cor="vermelho")
         return False
 
-def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
+def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, modelo=None, caminho=None):
     if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
         time.sleep(6)
-        if focar_barra_mensagem_enviar(driver, mensagem):
+        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminho):
             atualizar_log(f"\nAviso enviado para {contato or grupo}, {codigo} - {identificador}.\n", cor="verde")
             focar_pagina_geral(driver)
             return True
@@ -362,6 +407,15 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                         'cartas': cartas
                     }
                     
+                elif modelo == "ONE":
+                    empresa, nome_contato, nome_grupo, caminho = row[1:5]
+                    dados[codigo] = {
+                        'empresa': empresa,
+                        'nome_contato': nome_contato,
+                        'nome_grupo': nome_grupo,
+                        'caminho': caminho
+                    }
+                
                 else:  # Modelo ALL
                     pessoas, nome_contato, nome_grupo = row[1:4]
                     dados[codigo] = {
@@ -427,6 +481,16 @@ def extrair_dados(dados, modelo):
         
         return codigos, nome, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas
     
+    elif modelo == "ONE":
+        empresas, caminhos = [], []
+        for cod, info in dados.items():
+            codigos.append(cod)
+            empresas.append(info['empresa'])
+            nome_contatos.append(info['nome_contato'])
+            nome_grupos.append(info['nome_grupo'])
+            caminhos.append(info['caminho'])
+        return codigos, empresas, nome_contatos, nome_grupos, caminhos
+    
     else:  # Modelo ALL
         empresas = []
         for cod, info in dados.items():
@@ -487,8 +551,8 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
         msg_key = f"Certificado_{carta}" if f"Certificado_{carta}" in mensagens else "Certificado_1"  # Fallback para carta 1
         msg = mensagens.get(msg_key, mensagens.get("Certificado_1", "Mensagem de cobrança padrão não encontrada."))
         msg = msg.format(nome=nome_empresa, cnpj_formatado=cnpj_formatado, datas=vencimentos)
-    else:
-        msg = mensagens.get(msg_key, MODELOS[modelo]["mensagem_padrao"])
+    # else:
+    #     msg = mensagens.get(msg_key, MODELOS[modelo]["mensagem_padrao"])
     return msg
 
 # Funções de Interface
@@ -612,6 +676,23 @@ def processar_dados(excel, modelo, linha_inicial):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
             time.sleep(5)
+    
+    elif modelo == "ONE":
+        codigos, empresas, nome_contatos, nome_grupos, caminhos = extrair_dados(dados, modelo)
+        total_contatos = len(codigos)
+        for i, (cod, emp, contato, grupo, caminho) in enumerate(zip(codigos, empresas, nome_contatos, nome_grupos,caminhos)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                return
+            linha_atual = linha_inicial + i
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"\nProcessando {cod} - {emp}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
+            mensagem = mensagem_padrao(modelo)
+            if enviar_mensagem(driver, contato, grupo, mensagem, cod, emp, modelo, caminho):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
+            time.sleep(5)
             
     else:  # Modelo ALL
         codigos, empresas, nome_contatos, nome_grupos = extrair_dados(dados, modelo)
@@ -625,7 +706,7 @@ def processar_dados(excel, modelo, linha_inicial):
             atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"\nProcessando {cod} - {emp}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
             mensagem = mensagem_padrao(modelo)
-            if enviar_mensagem(driver, contato, grupo, mensagem, cod, emp):
+            if enviar_mensagem(driver, contato, grupo, mensagem, cod, emp, modelo):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
             time.sleep(5)
@@ -633,23 +714,23 @@ def processar_dados(excel, modelo, linha_inicial):
     atualizar_log("Processamento finalizado!", cor="verde")
     finalizar_programa()
 
-def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
-    if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
-        time.sleep(6)
-        if focar_barra_mensagem_enviar(driver, mensagem):
-            if contato.upper() != "NONE":
-                atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
-            else: 
-                atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
-            focar_pagina_geral(driver)
-            return True
-        else:
-            if contato.upper() != "NONE":
-                atualizar_log(f"Falha ao enviar mensagem para {contato}", cor="vermelho")
-            else: 
-                atualizar_log(f"Falha ao enviar mensagem para {grupo}", cor="vermelho")
+# def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, modelo=None):
+#     if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
+#         time.sleep(6)
+#         if focar_barra_mensagem_enviar(driver, mensagem, modelo):
+#             if contato.upper() != "NONE":
+#                 atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
+#             else: 
+#                 atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
+#             focar_pagina_geral(driver)
+#             return True
+#         else:
+#             if contato.upper() != "NONE":
+#                 atualizar_log(f"Falha ao enviar mensagem para {contato}", cor="vermelho")
+#             else: 
+#                 atualizar_log(f"Falha ao enviar mensagem para {grupo}", cor="vermelho")
             
-    return False
+#     return False
 
 def cancelar_processamento():
     global cancelar
