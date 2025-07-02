@@ -72,7 +72,7 @@ def esperar_carregamento_completo(driver):
         atualizar_log(f"Erro ao esperar carregamento: {str(e)}", cor="vermelho")
         return False
 
-def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, path=None):
+def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
     try:
         elemento_alvo = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[1]/div/div[2]/div[2]/div[1]'))
@@ -98,48 +98,48 @@ def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, path=None):
                     EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[3]/div[1]/button'))
                 )
                 botao_enviar.click()
-                atualizar_log("Botão de enviar clicado com sucesso.")
+                atualizar_log("Botão de enviar clicado com sucesso.", cor="azul")
+                time.sleep(5)
             except:
                 atualizar_log("Erro ao clicar no botão de enviar.", cor="vermelho")
                 return False
-            if modelo == "ONE":
+            if modelo == "ONE" and caminhos:
                 try:
-                    # Verificar se o caminho é absoluto, se não for, construir o caminho completo
-                    if not os.path.isabs(path):
-                        caminho_base = r"C:\Users\VM001\Documents\Relatorios"
-                        caminho_completo = os.path.join(caminho_base, path)
-                    else:
-                        caminho_completo = path
-                     # Verificar se o arquivo existe
-                    if not os.path.exists(caminho_completo):
-                        atualizar_log(f"Arquivo não encontrado: {caminho_completo}", cor="vermelho")
-                        return False
-                    
-                    atualizar_log(f"Tentando anexar: {caminho_completo}")
-                    
-                    # Procurar pelo input de arquivo
                     input_file = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='file']"))
                     )
+                    # Construir caminhos absolutos e verificar existência
+                    caminhos_completos = []
+                    for caminho in caminhos:
+                        if not os.path.isabs(caminho):
+                            caminho_base = r"C:\Users\VM001\Documents\Relatorios"
+                            caminho_completo = os.path.join(caminho_base, caminho)
+                        else:
+                            caminho_completo = caminho
+                        if not os.path.exists(caminho_completo):
+                            atualizar_log(f"Arquivo não encontrado: {caminho_completo}", cor="vermelho")
+                            continue
+                        caminhos_completos.append(caminho_completo)
+                        atualizar_log(f"Preparando anexo: {caminho_completo}")
                     
-                    # Enviar o caminho do arquivo para o input
-                    input_file.send_keys(caminho_completo)
-                    atualizar_log(f"Arquivo anexado com sucesso: {caminho_completo}")
-                    
-                    time.sleep(3)  # Aguardar processamento do arquivo
+                    if caminhos_completos:
+                        # Enviar todos os arquivos de uma vez
+                        input_file.send_keys('\n'.join(caminhos_completos))
+                        atualizar_log(f"Arquivos anexados com sucesso: {', '.join(caminhos_completos)}", cor="azul")
+                        time.sleep(2 * len(caminhos_completos))  # Ajustar tempo conforme número de arquivos
+                        
+                        # Clicar no botão de enviar arquivos
+                        botao_enviar_arquivo = WebDriverWait(driver, 10).until(
+                            EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[3]/div/div[4]/div[2]/div/button'))
+                        )
+                        botao_enviar_arquivo.click()
+                        atualizar_log("Botão de enviar arquivo clicado com sucesso.")
+                        time.sleep(3)
+                    else:
+                        atualizar_log("Nenhum arquivo válido para anexar.", cor="vermelho")
+                        return False
                 except Exception as e:
-                    atualizar_log(f"Erro ao anexar arquivo: {e}", cor="vermelho")
-                
-                time.sleep(3)
-                
-                try:
-                    botao_enviar_arquivo = WebDriverWait(driver, 10).until(
-                        EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[3]/div/div[4]/div[2]/div/button'))
-                    )
-                    botao_enviar_arquivo.click()
-                    atualizar_log("Botão de enviar arquivo clicado com sucesso.")
-                except:
-                    atualizar_log("Erro ao clicar no botão de enviar arquivo.", cor="vermelho")
+                    atualizar_log(f"Erro ao anexar arquivos: {e}", cor="vermelho")
                     return False
                
                 
@@ -191,10 +191,10 @@ def encontrar_e_clicar_barra_contatos(driver, contato, grupo):
         atualizar_log(f"Erro ao interagir com a página: {str(e)}", cor="vermelho")
         return False
 
-def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, modelo=None, caminho=None):
+def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, modelo=None, caminhos=None):
     if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
         time.sleep(6)
-        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminho):
+        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
             atualizar_log(f"\nAviso enviado para {contato or grupo}, {codigo} - {identificador}.\n", cor="verde")
             focar_pagina_geral(driver)
             return True
@@ -207,7 +207,7 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, mod
                     if processar_resultados_busca(driver):
                         atualizar_log("Contato encontrado na aba Contatos.", cor="azul")
                         time.sleep(6)
-                        if focar_barra_mensagem_enviar(driver, mensagem):
+                        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
                             atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
                             focar_pagina_geral(driver)
                             return True
@@ -217,7 +217,7 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, mod
                     if processar_resultados_busca(driver):
                         atualizar_log("Grupo encontrado na aba Grupos.", cor="azul")
                         time.sleep(6)
-                        if focar_barra_mensagem_enviar(driver, mensagem):
+                        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
                             atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
                             focar_pagina_geral(driver)
                             return True
@@ -409,12 +409,24 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                     
                 elif modelo == "ONE":
                     empresa, nome_contato, nome_grupo, caminho = row[1:5]
-                    dados[codigo] = {
-                        'empresa': empresa,
-                        'nome_contato': nome_contato,
-                        'nome_grupo': nome_grupo,
-                        'caminho': caminho
-                    }
+                    # Agrupar por contato ou grupo (se contato for "NONE")
+                    chave = nome_contato if nome_contato.upper() != "NONE" else nome_grupo
+                    if chave in dados:
+                        dados[chave]['empresas'].append({
+                            'codigo': codigo,
+                            'empresa': empresa,
+                            'caminho': caminho
+                        })
+                    else:
+                        dados[chave] = {
+                            'nome_contato': nome_contato,
+                            'nome_grupo': nome_grupo,
+                            'empresas': [{
+                                'codigo': codigo,
+                                'empresa': empresa,
+                                'caminho': caminho
+                            }]
+                        }
                 
                 else:  # Modelo ALL
                     pessoas, nome_contato, nome_grupo = row[1:4]
@@ -482,14 +494,15 @@ def extrair_dados(dados, modelo):
         return codigos, nome, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas
     
     elif modelo == "ONE":
-        empresas, caminhos = [], []
-        for cod, info in dados.items():
-            codigos.append(cod)
-            empresas.append(info['empresa'])
+        contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista = [], [], [], [], []
+        for chave, info in dados.items():
+            contatos.append(chave)
             nome_contatos.append(info['nome_contato'])
             nome_grupos.append(info['nome_grupo'])
-            caminhos.append(info['caminho'])
-        return codigos, empresas, nome_contatos, nome_grupos, caminhos
+            empresas = [(emp['codigo'], emp['empresa'], emp['caminho']) for emp in info['empresas']]
+            empresas_lista.append(empresas)
+            caminhos_lista.append([emp['caminho'] for emp in info['empresas']])
+        return contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista
     
     else:  # Modelo ALL
         empresas = []
@@ -678,21 +691,29 @@ def processar_dados(excel, modelo, linha_inicial):
             time.sleep(5)
     
     elif modelo == "ONE":
-        codigos, empresas, nome_contatos, nome_grupos, caminhos = extrair_dados(dados, modelo)
-        total_contatos = len(codigos)
-        for i, (cod, emp, contato, grupo, caminho) in enumerate(zip(codigos, empresas, nome_contatos, nome_grupos,caminhos)):
+        contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista = extrair_dados(dados, modelo)
+        total_contatos = len(contatos)
+        linha_atual = linha_inicial
+        for i, (contato_key, contato, grupo, empresas, caminhos) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista)):
             if cancelar:
                 atualizar_log("Processamento cancelado!", cor="azul")
                 return
-            linha_atual = linha_inicial + i
+            # Incrementar linha_atual com base no número de empresas processadas
+            num_empresas = len(empresas)
+            linha_atual_final = linha_atual + num_empresas - 1
             porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
-            atualizar_log(f"\nProcessando {cod} - {emp}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
+            atualizar_progresso(porcentagem, f"{linha_atual}-{linha_atual_final}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas\n", cor="azul")
+            for cod, emp, _ in empresas:
+                atualizar_log(f"Empresa: {cod} - {emp}")
             mensagem = mensagem_padrao(modelo)
-            if enviar_mensagem(driver, contato, grupo, mensagem, cod, emp, modelo, caminho):
+            # Enviar uma única mensagem com todos os arquivos
+            identificador = ", ".join([emp for _, emp, _ in empresas])
+            if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo, caminhos):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
-                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} arquivos\n")
             time.sleep(5)
+            linha_atual += num_empresas
             
     else:  # Modelo ALL
         codigos, empresas, nome_contatos, nome_grupos = extrair_dados(dados, modelo)

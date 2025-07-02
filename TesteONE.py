@@ -9,6 +9,7 @@ import re
 import openpyxl
 import customtkinter as ctk
 from selenium import webdriver
+from PIL import Image, ImageTk  # Add PIL for image handling
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -25,7 +26,7 @@ Supports multiple models with customizable Excel structures and messages.
 """
 
 # Configuração do tema do customtkinter
-ctk.set_appearance_mode("Light")
+ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("dark-blue")
 
 # Variáveis globais
@@ -34,8 +35,16 @@ log_file_path = None
 
 # Modelos suportados
 MODELOS = {
+    # "ONE": {
+    #     "colunas": ["Código", "Empresa", "Contato Onvio", "Grupo Onvio", "Colaborador", "Evento", "Prazo"],
+    #     "mensagem_padrao": "ONEmessage"
+    # },
+    "ONE": {
+        "colunas": ["Código", "Empresa", "Contato Onvio", "Grupo Onvio", "Caminho"],
+        "mensagem_padrao": "ONEmessage"
+    },
     "ALL": {
-        "colunas": ["Codigo", "EMPRESAS", "CONTATO ONVIO", "GRUPO ONVIO"],
+        "colunas": ["Codigo", "Empresa", "Contato Onvio", "Grupo Onvio"],
         "mensagem_padrao": "Mensagem Padrão"
     },
     "ProrContrato": {
@@ -63,7 +72,7 @@ def esperar_carregamento_completo(driver):
         atualizar_log(f"Erro ao esperar carregamento: {str(e)}", cor="vermelho")
         return False
 
-def focar_barra_mensagem_enviar(driver, mensagem):
+def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
     try:
         elemento_alvo = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[1]/div/div[2]/div[2]/div[1]'))
@@ -84,35 +93,97 @@ def focar_barra_mensagem_enviar(driver, mensagem):
             atualizar_log("Mensagem formatada inserida com sucesso.")
             
             # Clicar no botão de enviar
-            # try:
-            #     botao_enviar = WebDriverWait(driver, 10).until(
-            #         EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[3]/div[1]/button'))
-            #     )
-            #     botao_enviar.click()
-            #     atualizar_log("Botão de enviar clicado com sucesso.")
-            # except:
-            #     atualizar_log("Erro ao clicar no botão de enviar.", cor="vermelho")
-            #     return False
+            try:
+                botao_enviar = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[3]/div[1]/button'))
+                )
+                botao_enviar.click()
+                atualizar_log("Botão de enviar clicado com sucesso.", cor="azul")
+                time.sleep(5)
+            except:
+                atualizar_log("Erro ao clicar no botão de enviar.", cor="vermelho")
+                return False
+            if modelo == "ONE" and caminhos:
+                try:
+                    input_file = WebDriverWait(driver, 10).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='file']"))
+                    )
+                    # Construir caminhos absolutos e verificar existência
+                    caminhos_completos = []
+                    for caminho in caminhos:
+                        if not os.path.isabs(caminho):
+                            caminho_base = r"C:\Users\VM001\Documents\Relatorios"
+                            caminho_completo = os.path.join(caminho_base, caminho)
+                        else:
+                            caminho_completo = caminho
+                        if not os.path.exists(caminho_completo):
+                            atualizar_log(f"Arquivo não encontrado: {caminho_completo}", cor="vermelho")
+                            continue
+                        caminhos_completos.append(caminho_completo)
+                        atualizar_log(f"Preparando anexo: {caminho_completo}")
+                    
+                    if caminhos_completos:
+                        # Enviar todos os arquivos de uma vez
+                        input_file.send_keys('\n'.join(caminhos_completos))
+                        atualizar_log(f"Arquivos anexados com sucesso: {', '.join(caminhos_completos)}", cor="azul")
+                        time.sleep(2 * len(caminhos_completos))  # Ajustar tempo conforme número de arquivos
+                        
+                        # Clicar no botão de enviar arquivos
+                        botao_enviar_arquivo = WebDriverWait(driver, 10).until(
+                            EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[3]/div/div[4]/div[2]/div/button'))
+                        )
+                        botao_enviar_arquivo.click()
+                        atualizar_log("Botão de enviar arquivo clicado com sucesso.")
+                        time.sleep(3)
+                    else:
+                        atualizar_log("Nenhum arquivo válido para anexar.", cor="vermelho")
+                        return False
+                except Exception as e:
+                    atualizar_log(f"Erro ao anexar arquivos: {e}", cor="vermelho")
+                    return False
+               
                 
-            # # Clicar no botão de desconsiderar
-            # try:
-            #     botao_desconsiderar = WebDriverWait(driver, 10).until(
-            #         EC.element_to_be_clickable((By.XPATH, '//*[@id="ChatHeader"]/div[2]/div[1]/div[3]/div[1]/button/div'))
-            #     )
-            #     botao_desconsiderar.click()
-            #     atualizar_log("Botão de DESCONSIDERAR clicado com sucesso.")
-            #     WebDriverWait(driver, 5).until(
-            #         EC.presence_of_element_located((By.XPATH, '/html/body/div[4]'))
-            #     )
-            #     desconsiderar = WebDriverWait(driver, 10).until(
-            #         EC.element_to_be_clickable((By.XPATH, '/html/body/div[4]/div/div/div[3]/button[2]'))
-            #     )
-            #     desconsiderar.click()
-            #     time.sleep(2)
-            #     atualizar_log("Mensagem Desconsiderada com Sucesso!", cor="azul")
-            # except:
-            #     atualizar_log("Erro ao desconsiderar mensagem.", cor="vermelho")
-            #     return False
+            time.sleep(3)       
+            # Clicar no botão de desconsiderar
+            try:
+                botao_desconsiderar = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, '//*[@id="ChatHeader"]/div[2]/div[1]/div[3]/div[1]/button/div'))
+                )
+                botao_desconsiderar.click()
+                atualizar_log("Botão de DESCONSIDERAR clicado com sucesso.")
+                WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.XPATH, '/html/body/div[4]'))
+                )
+                desconsiderar = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, '/html/body/div[4]/div/div/div[3]/button[2]'))
+                )
+                desconsiderar.click()
+                time.sleep(4)
+                atualizar_log("Mensagem Desconsiderada com Sucesso!", cor="azul")
+            except:
+                atualizar_log("Erro ao desconsiderar mensagem.", cor="vermelho")
+                
+                # Resolvendo bug de desconsiderar mensagem
+                # FECHAR ABA DE TRANSFERENCIA DE MENSAGEM
+                atualizar_log("Identificando Bug ...")
+                try:
+                    #Aba de transferencia de mensagem           
+                    janela_transferência = WebDriverWait(driver, 5).until(
+                        EC.presence_of_element_located((By.XPATH, '/html/body/div[4]/div'))
+                    )
+                    
+                    if janela_transferência:
+                        atualizar_log("Cancelando Transferencia e corrigindo bug ...")
+                        cancelar_transf =  WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, '/html/body/div[4]/div/div/div[3]/button[1]'))
+                    )
+                        cancelar_transf.click()
+                        atualizar_log("Transferencia cancelada, bug corrgido!", cor="azul")
+                        return True
+                except:
+                    atualizar_log("Janela de bug não identificada, e bug não solucionado", cor="vermelho")      
+                    return False
+                return False
                 
             return True
         atualizar_log("Barra de mensagem não encontrada.")
@@ -141,10 +212,10 @@ def encontrar_e_clicar_barra_contatos(driver, contato, grupo):
         atualizar_log(f"Erro ao interagir com a página: {str(e)}", cor="vermelho")
         return False
 
-def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
+def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, modelo=None, caminhos=None):
     if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
         time.sleep(6)
-        if focar_barra_mensagem_enviar(driver, mensagem):
+        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
             atualizar_log(f"\nAviso enviado para {contato or grupo}, {codigo} - {identificador}.\n", cor="verde")
             focar_pagina_geral(driver)
             return True
@@ -157,7 +228,7 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
                     if processar_resultados_busca(driver):
                         atualizar_log("Contato encontrado na aba Contatos.", cor="azul")
                         time.sleep(6)
-                        if focar_barra_mensagem_enviar(driver, mensagem):
+                        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
                             atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
                             focar_pagina_geral(driver)
                             return True
@@ -167,7 +238,7 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
                     if processar_resultados_busca(driver):
                         atualizar_log("Grupo encontrado na aba Grupos.", cor="azul")
                         time.sleep(6)
-                        if focar_barra_mensagem_enviar(driver, mensagem):
+                        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
                             atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
                             focar_pagina_geral(driver)
                             return True
@@ -178,7 +249,12 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
 def abrir_chrome_com_url(url):
     encerrar_processos_chrome()
     user_data_dir = r"C:\PerfisChrome\automacao"  # o mesmo caminho usado no passo 1
-
+    profile_dir = os.path.join(user_data_dir, "Profile 1")
+    # Verificar se o diretório do perfil existe
+    if not os.path.exists(profile_dir):
+        atualizar_log(f"Perfil 'Profile 1' não encontrado em {user_data_dir}.", cor="vermelho")
+        atualizar_log("Um novo perfil será criado. Por favor, faça login na página aberta para continuar.", cor="azul")
+        
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
     chrome_options.add_argument("--profile-directory=Profile 1")
@@ -201,10 +277,14 @@ def abrir_chrome_com_url(url):
         return None
 
 def encerrar_processos_chrome():
-    for proc in psutil.process_iter(['name']):
+    for proc in psutil.process_iter(['name', 'cmdline']):
         if proc.info['name'] == 'chrome.exe':
             try:
-                proc.terminate()
+                cmdline = proc.info['cmdline'] or []
+                cmdline_str = ' '.join(cmdline)
+                if '--user-data-dir=C:\\PerfisChrome\\automacao' in cmdline_str and '--profile-directory=Profile 1' in cmdline_str:
+                    proc.terminate()
+                    atualizar_log(f"Processo Chrome de automação (PID: {proc.pid}) encerrado.")
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
     time.sleep(2)
@@ -348,6 +428,27 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                         'cartas': cartas
                     }
                     
+                elif modelo == "ONE":
+                    empresa, nome_contato, nome_grupo, caminho = row[1:5]
+                    # Agrupar por contato ou grupo (se contato for "NONE")
+                    chave = nome_contato if nome_contato.upper() != "NONE" else nome_grupo
+                    if chave in dados:
+                        dados[chave]['empresas'].append({
+                            'codigo': codigo,
+                            'empresa': empresa,
+                            'caminho': caminho
+                        })
+                    else:
+                        dados[chave] = {
+                            'nome_contato': nome_contato,
+                            'nome_grupo': nome_grupo,
+                            'empresas': [{
+                                'codigo': codigo,
+                                'empresa': empresa,
+                                'caminho': caminho
+                            }]
+                        }
+                
                 else:  # Modelo ALL
                     pessoas, nome_contato, nome_grupo = row[1:4]
                     dados[codigo] = {
@@ -413,6 +514,17 @@ def extrair_dados(dados, modelo):
         
         return codigos, nome, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas
     
+    elif modelo == "ONE":
+        contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista = [], [], [], [], []
+        for chave, info in dados.items():
+            contatos.append(chave)
+            nome_contatos.append(info['nome_contato'])
+            nome_grupos.append(info['nome_grupo'])
+            empresas = [(emp['codigo'], emp['empresa'], emp['caminho']) for emp in info['empresas']]
+            empresas_lista.append(empresas)
+            caminhos_lista.append([emp['caminho'] for emp in info['empresas']])
+        return contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista
+    
     else:  # Modelo ALL
         empresas = []
         for cod, info in dados.items():
@@ -473,8 +585,8 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
         msg_key = f"Certificado_{carta}" if f"Certificado_{carta}" in mensagens else "Certificado_1"  # Fallback para carta 1
         msg = mensagens.get(msg_key, mensagens.get("Certificado_1", "Mensagem de cobrança padrão não encontrada."))
         msg = msg.format(nome=nome_empresa, cnpj_formatado=cnpj_formatado, datas=vencimentos)
-    else:
-        msg = mensagens.get(msg_key, MODELOS[modelo]["mensagem_padrao"])
+    # else:
+    #     msg = mensagens.get(msg_key, MODELOS[modelo]["mensagem_padrao"])
     return msg
 
 # Funções de Interface
@@ -515,6 +627,7 @@ def iniciar_processamento():
         return
     atualizar_log("Iniciando processamento...", cor="azul")
     botao_iniciar.configure(state="disabled")
+    botao_iniciar_chrome.configure(state="disabled")  # Desativar o botão de Chrome
     inicializar_arquivo_log()
     thread = threading.Thread(target=processar_dados, args=(excel, modelo, linha))
     thread.start()
@@ -523,7 +636,21 @@ def processar_dados(excel, modelo, linha_inicial):
     url = "https://app.gestta.com.br/attendance/#/chat/contact-list"
     driver = abrir_chrome_com_url(url)
     if not driver:
+        atualizar_log("Não foi possível abrir o Chrome. Processamento abortado.", cor="vermelho")
+        finalizar_programa()
         return
+    # # Verificar se a página está autenticada
+    # try:
+    #     WebDriverWait(driver, 10).until(
+    #         EC.presence_of_element_located((By.XPATH, '//*[@id="trauth-continue-signin-btn"]'))
+    #     )
+    #     atualizar_log("Página autenticada, iniciando processamento.", cor="verde")
+    # except TimeoutException:
+    #     atualizar_log("Falha na autenticação: faça login no Onvio Messenger antes de iniciar o processamento.", cor="vermelho")
+    #     driver.quit()
+    #     finalizar_programa()
+    #     return
+    
     time.sleep(10)
     dados = ler_dados_excel(excel, modelo, linha_inicial)
     if not dados:
@@ -539,7 +666,7 @@ def processar_dados(excel, modelo, linha_inicial):
                 return
             linha_atual = linha_inicial + i
             porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"Linha: {linha_atual}")
             atualizar_log(f"\nProcessando Empresa: {cod}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
             mensagem = mensagem_padrao(modelo, pessoas=p, vencimentos=v)
@@ -557,7 +684,7 @@ def processar_dados(excel, modelo, linha_inicial):
                 return
             linha_atual = linha_inicial + i
             porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"Linha: {linha_atual}")
             atualizar_log(f"\nProcessando contato da empresa {cod} - {nome_emp}: Contato: {contato}, Grupo: {grupo}, Aviso nº: {carta}\n", cor="azul")
             mensagem = mensagem_padrao(modelo, valores=p, vencimentos=v, carta=carta, nome_empresa=nome_emp)
@@ -575,7 +702,7 @@ def processar_dados(excel, modelo, linha_inicial):
                 return
             linha_atual = linha_inicial + i
             porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"Linha: {linha_atual}")
             atualizar_log(f"\nProcessando contato da empresa {cod} - {nome_emp}: Contato: {contato}, Grupo: {grupo}, Aviso nº: {carta}\n", cor="azul")
             mensagem = mensagem_padrao(modelo, vencimentos=v, carta=carta, cnpj=c, nome_empresa=nome_emp)
@@ -583,6 +710,31 @@ def processar_dados(excel, modelo, linha_inicial):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
             time.sleep(5)
+    
+    elif modelo == "ONE":
+        contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista = extrair_dados(dados, modelo)
+        total_contatos = len(contatos)
+        linha_atual = linha_inicial
+        for i, (contato_key, contato, grupo, empresas, caminhos) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                return
+            # Incrementar linha_atual com base no número de empresas processadas
+            num_empresas = len(empresas)
+            linha_atual_final = linha_atual + num_empresas - 1
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"{linha_atual}-{linha_atual_final}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas\n", cor="azul")
+            for cod, emp, _ in empresas:
+                atualizar_log(f"Empresa: {cod} - {emp}")
+            mensagem = mensagem_padrao(modelo)
+            # Enviar uma única mensagem com todos os arquivos
+            identificador = ", ".join([emp for _, emp, _ in empresas])
+            if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo, caminhos):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} arquivos\n")
+            time.sleep(5)
+            linha_atual += num_empresas
             
     else:  # Modelo ALL
         codigos, empresas, nome_contatos, nome_grupos = extrair_dados(dados, modelo)
@@ -593,10 +745,10 @@ def processar_dados(excel, modelo, linha_inicial):
                 return
             linha_atual = linha_inicial + i
             porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"Linha {linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"\nProcessando {cod} - {emp}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
             mensagem = mensagem_padrao(modelo)
-            if enviar_mensagem(driver, contato, grupo, mensagem, cod, emp):
+            if enviar_mensagem(driver, contato, grupo, mensagem, cod, emp, modelo):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
             time.sleep(5)
@@ -604,23 +756,23 @@ def processar_dados(excel, modelo, linha_inicial):
     atualizar_log("Processamento finalizado!", cor="verde")
     finalizar_programa()
 
-def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador):
-    if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
-        time.sleep(6)
-        if focar_barra_mensagem_enviar(driver, mensagem):
-            if contato.upper() != "NONE":
-                atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
-            else: 
-                atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
-            focar_pagina_geral(driver)
-            return True
-        else:
-            if contato.upper() != "NONE":
-                atualizar_log(f"Falha ao enviar mensagem para {contato}", cor="vermelho")
-            else: 
-                atualizar_log(f"Falha ao enviar mensagem para {grupo}", cor="vermelho")
+# def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, modelo=None):
+#     if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
+#         time.sleep(6)
+#         if focar_barra_mensagem_enviar(driver, mensagem, modelo):
+#             if contato.upper() != "NONE":
+#                 atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
+#             else: 
+#                 atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
+#             focar_pagina_geral(driver)
+#             return True
+#         else:
+#             if contato.upper() != "NONE":
+#                 atualizar_log(f"Falha ao enviar mensagem para {contato}", cor="vermelho")
+#             else: 
+#                 atualizar_log(f"Falha ao enviar mensagem para {grupo}", cor="vermelho")
             
-    return False
+#     return False
 
 def cancelar_processamento():
     global cancelar
@@ -635,6 +787,7 @@ def finalizar_programa():
     messagebox.showinfo("Processo Finalizado", "Processamento concluído!")
     botao_fechar.configure(state="normal")
     botao_iniciar.configure(state="normal")
+    botao_iniciar_chrome.configure(state="normal")  # Reativar o botão de Chrome
 
 def abrir_log():
     if log_file_path and os.path.exists(log_file_path):
@@ -644,7 +797,8 @@ def abrir_log():
 
 def inicializar_arquivo_log():
     global log_file_path
-    log_dir = os.path.join(os.path.expanduser('~'), 'Documents', 'AutoMessenger_Logs')
+    # log_dir = os.path.join(os.path.expanduser('~'), 'AutoMessengerONE_Logs')
+    log_dir = os.path.join(os.path.dirname(__file__), 'AutoMessengerONE_Logs')
     os.makedirs(log_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     log_file_path = os.path.join(log_dir, f"automessenger_one_log_{timestamp}.txt")
@@ -666,7 +820,7 @@ def atualizar_log(mensagem, cor=None):
         log_text.insert("end", mensagem + "\n", "azul")
     else:
         log_text.insert("end", timestamp, "timestamp")
-        log_text.insert("end", mensagem + "\n")
+        log_text.insert("end", mensagem + "\n", "preto")
     log_text.configure(state="disabled")
     log_text.see("end")
     if log_file_path and os.path.exists(log_file_path):
@@ -678,25 +832,57 @@ def atualizar_progresso(valor, texto=""):
     progresso_texto.configure(text=texto)
     janela.update_idletasks()
 
+def iniciar_chrome_automacao():
+    atualizar_log("Iniciando configuração do Chrome de automação...", cor="azul")
+    url = "https://onvio.com.br/staff/#/dashboard-core-center"
+    driver = abrir_chrome_com_url(url)
+    if driver:
+        atualizar_log("Chrome de automação aberto com sucesso. Por favor faça o login, entre no messenger e inicie o processamento.", cor="azul")
+        # Não fechamos o driver aqui, deixando-o aberto para o usuário fazer login
+    else:
+        atualizar_log("Falha ao abrir o Chrome de automação.", cor="vermelho")
 
 # Interface Principal
 def main():
-    global janela, caminho_excel, modelo_selecionado, mensagem_selecionada, botao_iniciar, botao_fechar, log_text, progresso, progresso_texto, entrada_linha_inicial
+    global janela, caminho_excel, modelo_selecionado, mensagem_selecionada, botao_iniciar, botao_fechar, log_text, progresso, progresso_texto, entrada_linha_inicial, botao_iniciar_chrome
 
     janela = ctk.CTk()
     janela.title("AutoMessenger ONE")
     janela.geometry("700x600")
     janela.resizable(True, True)
 
+    # Set the window icon (use .ico for best compatibility on Windows)
+    try:
+        janela.iconbitmap("logoOne.ico")  # Replace with your .ico file name
+    except:
+        # Fallback to .png if .ico fails (works on some platforms)
+        icon_image = ctk.CTkImage(Image.open("logoOne.png"), size=(32, 32))  # Adjust size as needed
+        janela.iconphoto(False, icon_image)
+    
     caminho_excel = ctk.StringVar()
     modelo_selecionado = ctk.StringVar()
     mensagem_selecionada = ctk.StringVar()
     progresso = ctk.DoubleVar()
 
-    frame_titulo = ctk.CTkFrame(janela)
+    # Add the logo to the title frame
+    frame_titulo = ctk.CTkFrame(janela, fg_color="transparent")
     frame_titulo.pack(fill="x", padx=10, pady=10)
+    
+    # Load and display the logo image
+    try:
+        logo_image = ctk.CTkImage(Image.open("logoOne.png"), size=(50, 50))  # Adjust size as needed
+        logo_label = ctk.CTkLabel(frame_titulo, image=logo_image, text="")
+        logo_label.pack(pady=(5, 0))
+    except Exception as e:
+        print(f"Error loading logo image: {e}")  # Log error if image fails to load
+
     titulo = ctk.CTkLabel(frame_titulo, text="AutoMessenger ONE", font=("Roboto", 16, "bold"))
-    titulo.pack(pady=10)
+    titulo.pack(pady=(0, 5))
+    
+    # frame_titulo = ctk.CTkFrame(janela)
+    # frame_titulo.pack(fill="x", padx=10, pady=10)
+    # titulo = ctk.CTkLabel(frame_titulo, text="AutoMessenger ONE", font=("Roboto", 16, "bold"))
+    # titulo.pack(pady=10)
 
     frame_selecao = ctk.CTkFrame(janela)
     frame_selecao.pack(fill="x", padx=10, pady=5)
@@ -784,6 +970,10 @@ def main():
     
     botao_editor = ctk.CTkButton(frame_mensagem, text="Adicionar/Editar Mensagem", command=abrir_editor_mensagem)
     botao_editor.grid(row=0, column=2, padx=5, pady=5)
+    
+    # Novo botão para iniciar Chrome
+    botao_iniciar_chrome = ctk.CTkButton(frame_mensagem, text="Iniciar Chrome de Automação", command=iniciar_chrome_automacao)
+    botao_iniciar_chrome.grid(row=0, column=3, padx=5, pady=5)
 
     frame_botoes = ctk.CTkFrame(janela)
     frame_botoes.pack(fill="x", padx=10, pady=5)
@@ -810,12 +1000,13 @@ def main():
     frame_log.pack(pady=10, padx=10, fill="both", expand=True)
     label_log = ctk.CTkLabel(frame_log, text="Log de execução:")
     label_log.pack(anchor="w", padx=5, pady=5)
-    log_text = ctk.CTkTextbox(frame_log, wrap="word", height=250, width=650)
+    log_text = ctk.CTkTextbox(frame_log, wrap="word", height=250, width=650, fg_color="#F5F5F5")
     log_text.pack(fill="both", expand=True, padx=5, pady=5)
     log_text.tag_config("vermelho", foreground="red")
     log_text.tag_config("verde", foreground="green")
     log_text.tag_config("azul", foreground="blue")
     log_text.tag_config("timestamp", foreground="gray")
+    log_text.tag_config("preto", foreground="black")
 
     atualizar_log("Bem-vindo ao AutoMessenger ONE! Selecione um modelo, Excel e clique em 'Iniciar'.", cor="verde")
 
