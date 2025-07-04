@@ -67,7 +67,6 @@ Certifique-se de ter o Google Chrome instalado e que o perfil `C:\PerfisChrome\a
 
 ---
 
-
 ## 📂 Estrutura de Arquivos Esperada
 
 ```
@@ -98,6 +97,20 @@ AutoMessenger-ONE/
 - Utilize a edição de mensagens para adaptar os textos conforme o modelo.
 
 ---
+
+
+### ⚠️ Nota sobre o modelo `ONE`
+
+O modelo `ONE` utiliza um caminho **pré-definido** para localizar os arquivos de relatórios a serem anexados. Por padrão, o programa espera que os arquivos estejam dentro da pasta:
+
+```
+Documentos\Relatorios
+```
+
+> Isso significa que, **em qualquer computador onde o programa for executado**, deve existir uma pasta chamada `Relatorios` dentro da pasta `Documentos` do usuário atual (ex: `C:\Users\SeuUsuario\Documents\Relatorios`).
+
+📌 Certifique-se de que os relatórios estejam corretamente salvos nessa localização para garantir o funcionamento do envio com anexos.
+
 
 ## 👨‍💻 Desenvolvedor
 

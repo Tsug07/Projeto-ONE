@@ -113,7 +113,7 @@ def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
                     caminhos_completos = []
                     for caminho in caminhos:
                         if not os.path.isabs(caminho):
-                            caminho_base = r"C:\Users\VM001\Documents\Relatorios"
+                            caminho_base = os.path.join(os.path.expanduser("~"), "Documents", "Relatorios")
                             caminho_completo = os.path.join(caminho_base, caminho)
                         else:
                             caminho_completo = caminho
