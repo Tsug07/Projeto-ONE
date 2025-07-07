@@ -33,7 +33,7 @@
 |--------------------|----------------------------------------------------------------------------------|-------------------------------------------|
 | `ONE`              | Código, Empresa, Contato Onvio, Grupo Onvio, Caminho                             | Envio com anexos personalizados           |
 | `ALL`              | Código, Empresa, Contato Onvio, Grupo Onvio                                      | Mensagem padrão                           |
-| `ProrContrato`     | Código, Contato Onvio, Grupo Onvio, Nome, Vencimento                             | Prorrogação de contrato                   |
+| `ProrContrato`     | Código, Contato Onvio, Grupo Onvio, Nome, Vencimento                             | Prorrogação de contrato (descontinuado)   |
 | `Cobranca`         | Código, Empresa, Contato Onvio, Grupo Onvio, Valor, Vencimento, Carta de Aviso   | Aviso de cobrança com diferentes versões  |
 | `ComuniCertificado`| Código, Empresa, Contato Onvio, Grupo Onvio, CNPJ, Vencimento, Carta de Aviso    | Certificado digital vencendo              |
 
@@ -115,7 +115,7 @@ Documentos\Relatorios
 ## 👨‍💻 Desenvolvedor
 
 **Hugo L. Almeida** – Equipe de TI  
-🔧 Suporte técnico e melhorias: [hugogule@gmail.com]
+🔧 Suporte técnico e melhorias: [hugoalmeida.canellaesantos@gmail.com]
 
 ---
 

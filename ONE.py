@@ -659,17 +659,6 @@ def processar_dados(excel, modelo, linha_inicial):
         atualizar_log("Não foi possível abrir o Chrome. Processamento abortado.", cor="vermelho")
         finalizar_programa()
         return
-    # # Verificar se a página está autenticada
-    # try:
-    #     WebDriverWait(driver, 10).until(
-    #         EC.presence_of_element_located((By.XPATH, '//*[@id="trauth-continue-signin-btn"]'))
-    #     )
-    #     atualizar_log("Página autenticada, iniciando processamento.", cor="verde")
-    # except TimeoutException:
-    #     atualizar_log("Falha na autenticação: faça login no Onvio Messenger antes de iniciar o processamento.", cor="vermelho")
-    #     driver.quit()
-    #     finalizar_programa()
-    #     return
     
     time.sleep(10)
     dados = ler_dados_excel(excel, modelo, linha_inicial)
@@ -743,7 +732,7 @@ def processar_dados(excel, modelo, linha_inicial):
             num_empresas = len(empresas)
             linha_atual_final = linha_atual + num_empresas - 1
             porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"{linha_atual}-{linha_atual_final}/{total_linhas + linha_inicial - 1}")
+            atualizar_progresso(porcentagem, f"{linha_atual_final}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas\n", cor="azul")
             for cod, emp, _ in empresas:
                 atualizar_log(f"Empresa: {cod} - {emp}")
@@ -776,23 +765,6 @@ def processar_dados(excel, modelo, linha_inicial):
     atualizar_log("Processamento finalizado!", cor="verde")
     finalizar_programa()
 
-# def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, modelo=None):
-#     if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
-#         time.sleep(6)
-#         if focar_barra_mensagem_enviar(driver, mensagem, modelo):
-#             if contato.upper() != "NONE":
-#                 atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
-#             else: 
-#                 atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
-#             focar_pagina_geral(driver)
-#             return True
-#         else:
-#             if contato.upper() != "NONE":
-#                 atualizar_log(f"Falha ao enviar mensagem para {contato}", cor="vermelho")
-#             else: 
-#                 atualizar_log(f"Falha ao enviar mensagem para {grupo}", cor="vermelho")
-            
-#     return False
 
 def cancelar_processamento():
     global cancelar
