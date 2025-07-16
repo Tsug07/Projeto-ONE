@@ -331,6 +331,9 @@ def focar_barra_endereco_e_navegar(driver, termo_busca):
         return False
     except Exception as e:
         atualizar_log(f"Erro ao focar na barra de endereço ou navegar: {str(e)}")
+        driver.refresh()
+        time.sleep(3)
+        focar_barra_endereco_e_navegar(driver, termo_busca)
         return False
 
 def processar_resultados_busca(driver):
@@ -375,6 +378,8 @@ def focar_pagina_geral(driver):
         return True
     except Exception as e:
         atualizar_log(f"Erro ao voltar à lista geral: {str(e)}", cor="vermelho")
+        driver.refresh()
+        focar_pagina_geral(driver)
         return False
 
 # Funções de Dados
