@@ -23,12 +23,31 @@ def carregar_contatos_excel(caminho_excel):
     for row in sheet.iter_rows(min_row=2, values_only=True):
         if len(row) >= 4:
             codigo, nome, nome_contato, nome_grupo = row[:4]
-            contatos_dict[str(codigo)] = {
+            # Converter código para inteiro e depois para string para remover .0
+            codigo_limpo = str(int(float(codigo))) if codigo is not None else ""
+            contatos_dict[codigo_limpo] = {
                 'empresa': nome,
                 'contato': nome_contato,
                 'grupo': nome_grupo
             }
     return contatos_dict
+
+# Função auxiliar para limpar e padronizar códigos
+def limpar_codigo(codigo):
+    """Converte código para string limpa, removendo .0 e espaços"""
+    if codigo is None or pd.isna(codigo):
+        return ""
+    try:
+        # Se for float com .0, remove o .0
+        if isinstance(codigo, float) and codigo.is_integer():
+            return str(int(codigo))
+        # Se for string, remove espaços e .0 no final
+        codigo_str = str(codigo).strip()
+        if codigo_str.endswith('.0'):
+            codigo_str = codigo_str[:-2]
+        return codigo_str
+    except:
+        return str(codigo).strip()
 
 # Funções de processamento para cada modelo
 def processar_one(pasta_pdf, excel_entrada, excel_saida, log_callback, progress_callback):
@@ -122,7 +141,8 @@ def processar_cobranca(caminho_pdf, excel_entrada, excel_saida, log_callback, pr
     for linha in linhas_texto:
         match_cliente = regex_cliente.search(linha)
         if match_cliente:
-            codigo_atual = str(match_cliente.group(1))
+            codigo_atual = limpar_codigo(match_cliente.group(1))  # CORREÇÃO AQUI
+            log_callback(f"Debug - Código extraído do PDF: '{codigo_atual}'")
         match_nome = regex_nome.search(linha)
         if match_nome and codigo_atual:
             empresa_atual = match_nome.group(1)
@@ -132,8 +152,14 @@ def processar_cobranca(caminho_pdf, excel_entrada, excel_saida, log_callback, pr
             valor_parcela = round(float(match_parcela.group(2).replace(".", "").replace(",",".")), 2)
             data_venci = datetime.strptime(data_vencimento, '%d/%m/%Y').date()
             carta = verifica_certificado_cobranca(data_venci)
-            contato_individual = contatos_dict.get(codigo_atual, {}).get('contato', '')
-            contato_grupo = contatos_dict.get(codigo_atual, {}).get('grupo', '')
+            
+            # CORREÇÃO: Debug para verificar busca no dicionário
+            contato_info = contatos_dict.get(codigo_atual, {})
+            log_callback(f"Debug - Buscando código '{codigo_atual}' no dicionário: {contato_info}")
+            
+            contato_individual = contato_info.get('contato', '')
+            contato_grupo = contato_info.get('grupo', '')
+            
             dados[codigo_atual].append({
                 'Código': codigo_atual,
                 'Empresa': empresa_atual,
@@ -161,6 +187,10 @@ def processar_renovacao(excel_base, excel_entrada, excel_saida, log_callback, pr
     log_callback("Lendo Excel Base...")
     progress_callback(0.2)
     
+    # CORREÇÃO: Log do dicionário de contatos para debug
+    log_callback(f"Debug - Contatos carregados: {len(contatos_dict)} registros")
+    log_callback(f"Debug - Primeiros 3 códigos do dicionário: {list(contatos_dict.keys())[:3]}")
+    
     df_comparacao = pd.read_excel(excel_base)
     codigos = df_comparacao.iloc[:, 0]
     pessoas = df_comparacao.iloc[:, 1]
@@ -169,9 +199,16 @@ def processar_renovacao(excel_base, excel_entrada, excel_saida, log_callback, pr
     progress_callback(0.4)
     log_callback("Comparando códigos e criando resultados...")
     for codigo_atual, pessoa in zip(codigos, pessoas):
-        codigo_atual = str(codigo_atual)
-        contato_individual = contatos_dict.get(codigo_atual, {}).get('contato', '')
-        contato_grupo = contatos_dict.get(codigo_atual, {}).get('grupo', '')
+        codigo_atual = limpar_codigo(codigo_atual)  # CORREÇÃO AQUI
+        log_callback(f"Debug - Código do Excel Base: '{codigo_atual}' (tipo: {type(codigo_atual)})")
+        
+        # CORREÇÃO: Debug para verificar busca no dicionário
+        contato_info = contatos_dict.get(codigo_atual, {})
+        log_callback(f"Debug - Buscando código '{codigo_atual}' no dicionário: {contato_info}")
+        
+        contato_individual = contato_info.get('contato', '')
+        contato_grupo = contato_info.get('grupo', '')
+        
         if codigo_atual not in dados:
             dados[codigo_atual] = []
         dados[codigo_atual].append({
@@ -222,6 +259,10 @@ def processar_comunicado(excel_base, excel_entrada, excel_saida, log_callback, p
     log_callback("Lendo Excel Base...")
     progress_callback(0.2)
     
+    # CORREÇÃO: Log do dicionário de contatos para debug
+    log_callback(f"Debug - Contatos carregados: {len(contatos_dict)} registros")
+    log_callback(f"Debug - Primeiros 3 códigos do dicionário: {list(contatos_dict.keys())[:3]}")
+    
     df_comparacao = pd.read_excel(excel_base)
     codigos = df_comparacao.iloc[:, 0]
     empresas = df_comparacao.iloc[:, 1]
@@ -233,13 +274,21 @@ def processar_comunicado(excel_base, excel_entrada, excel_saida, log_callback, p
     progress_callback(0.4)
     log_callback("Comparando códigos e criando resultados...")
     for codigo_atual, empresa, cnpj, vencimento, situacao in zip(codigos, empresas, cnpjs, vencimentos, situacoes):
-        codigo_atual = str(codigo_atual)
+        codigo_atual = limpar_codigo(codigo_atual)  # CORREÇÃO AQUI
+        log_callback(f"Debug - Código do Excel Base: '{codigo_atual}' (tipo: {type(codigo_atual)})")
+        
         if not pd.isna(cnpj):
             carta = verifica_certificado_comunicado(vencimento)
             cnpj_str = formatar_cnpj(cnpj)
-            contato_individual = contatos_dict.get(codigo_atual, {}).get('contato', '')
-            contato_grupo = contatos_dict.get(codigo_atual, {}).get('grupo', '')
+            
+            # CORREÇÃO: Debug para verificar busca no dicionário
+            contato_info = contatos_dict.get(codigo_atual, {})
+            log_callback(f"Debug - Buscando código '{codigo_atual}' no dicionário: {contato_info}")
+            
+            contato_individual = contato_info.get('contato', '')
+            contato_grupo = contato_info.get('grupo', '')
             vencimento_str = vencimento.strftime("%d/%m/%Y") if isinstance(vencimento, pd.Timestamp) else str(vencimento)
+            
             if codigo_atual not in dados:
                 dados[codigo_atual] = []
             dados[codigo_atual].append({
