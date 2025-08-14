@@ -884,7 +884,8 @@ def main():
     
     # Load and display the logo image
     try:
-        logo_image = ctk.CTkImage(Image.open("logoOne.png"), size=(50, 50))  # Adjust size as needed
+        logo_image = ctk.CTkImage(Image.open(resource_path("logoOne.png")), size=(50, 50))
+  # Adjust size as needed
         logo_label = ctk.CTkLabel(frame_titulo, image=logo_image, text="")
         logo_label.pack(pady=(5, 0))
     except Exception as e:
