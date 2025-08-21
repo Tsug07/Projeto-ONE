@@ -653,7 +653,7 @@ def iniciar_processamento():
     atualizar_log("Iniciando processamento...", cor="azul")
     botao_iniciar.configure(state="disabled")
     botao_iniciar_chrome.configure(state="disabled")  # Desativar o botão de Chrome
-    inicializar_arquivo_log()
+    inicializar_arquivo_log(modelo)
     thread = threading.Thread(target=processar_dados, args=(excel, modelo, linha))
     thread.start()
 
@@ -792,13 +792,13 @@ def abrir_log():
     else:
         messagebox.showinfo("Log não disponível", "Não há log para esta sessão.")
 
-def inicializar_arquivo_log():
+def inicializar_arquivo_log(modelo):
     global log_file_path
     # log_dir = os.path.join(os.path.expanduser('~'), 'AutoMessengerONE_Logs')
     log_dir = os.path.join(os.path.dirname(__file__), 'AutoMessengerONE_Logs')
     os.makedirs(log_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file_path = os.path.join(log_dir, f"automessenger_one_log_{timestamp}.txt")
+    log_file_path = os.path.join(log_dir, f"{modelo}_log_{timestamp}.txt")
     with open(log_file_path, 'w', encoding='utf-8') as f:
         f.write(f"=== Log AutoMessenger ONE - {timestamp} ===\n\n")
     return log_file_path
