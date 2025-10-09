@@ -590,6 +590,7 @@ def salvar_mensagens(mensagens):
 def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=None, cnpj=None, nome_empresa=None):
     mensagens = carregar_mensagens()
     msg = mensagens.get(mensagem_selecionada.get(), MODELOS[modelo]["mensagem_padrao"])
+    
     if modelo == "ProrContrato" and pessoas and vencimentos:
         pv = "\n".join([f"{p} se encerrará em {v}" for p, v in zip(pessoas, vencimentos)])
         msg = msg.format(pessoas_vencimentos=pv)
@@ -610,8 +611,44 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
         msg_key = f"Certificado_{carta}" if f"Certificado_{carta}" in mensagens else "Certificado_1"  # Fallback para carta 1
         msg = mensagens.get(msg_key, mensagens.get("Certificado_1", "Mensagem de cobrança padrão não encontrada."))
         msg = msg.format(nome=nome_empresa, cnpj_formatado=cnpj_formatado, datas=vencimentos)
-    # else:
-    #     msg = mensagens.get(msg_key, MODELOS[modelo]["mensagem_padrao"])
+    
+    elif modelo == "ONE":
+        # normaliza nome_empresa para lista de nomes
+        if isinstance(nome_empresa, list):
+            nomes_empresas = nome_empresa
+        elif nome_empresa is None:
+            nomes_empresas = []
+        else:
+            nomes_empresas = [nome_empresa]
+
+        # Pegar a mensagem selecionada pelo usuário
+        msg_selecionada = mensagem_selecionada.get()
+        
+        # Verificar se é uma mensagem que NÃO usa dados (sem placeholders)
+        if msg_selecionada == "ONEmessage":
+            # Mensagem simples sem dados dinâmicos
+            msg = mensagens.get(msg_selecionada, "Mensagem padrão não encontrada.")
+        else:
+            # Mensagem com dados (Parabens_Regularizado)
+            if len(nomes_empresas) > 1:
+                # Múltiplas empresas - usa versão _multi
+                msg_key = f"{msg_selecionada}_multi" if f"{msg_selecionada}_multi" in mensagens else msg_selecionada
+                msg = mensagens.get(msg_key, mensagens.get(msg_selecionada, "Mensagem padrão não encontrada."))
+                lista_empresas = "\n".join([f". {emp}" for emp in nomes_empresas])
+                # Tentar formatar com lista_empresas, se falhar, enviar sem formatação
+                try:
+                    msg = msg.format(empresas=lista_empresas)
+                except KeyError:
+                    pass
+            else:
+                # Uma única empresa
+                msg = mensagens.get(msg_selecionada, "Mensagem padrão não encontrada.")
+                nome_unico = nomes_empresas[0] if nomes_empresas else ""
+                # Tentar formatar com nome, se falhar, enviar sem formatação
+                try:
+                    msg = msg.format(nome=nome_unico)
+                except KeyError:
+                    pass
     return msg
 
 # Funções de Interface
@@ -741,12 +778,18 @@ def processar_dados(excel, modelo, linha_inicial):
             atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas\n", cor="azul")
             for cod, emp, _ in empresas:
                 atualizar_log(f"Empresa: {cod} - {emp}")
-            mensagem = mensagem_padrao(modelo)
+             # Monta lista com os nomes das empresas
+            nomes_empresas = [emp for _, emp, _ in empresas]
+
+            # Passa a lista de empresas para a mensagem
+            mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas)
+            
             # Enviar uma única mensagem com todos os arquivos
-            identificador = ", ".join([emp for _, emp, _ in empresas])
+            identificador = ", ".join(nomes_empresas)
             if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo, caminhos):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} arquivos\n")
+
             time.sleep(5)
             linha_atual += num_empresas
             
@@ -761,7 +804,7 @@ def processar_dados(excel, modelo, linha_inicial):
             porcentagem = ((i + 1) / total_contatos) * 100
             atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
             atualizar_log(f"\nProcessando {cod} - {emp}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
-            mensagem = mensagem_padrao(modelo)
+            mensagem = mensagem_padrao(modelo, nome_empresa=emp)
             if enviar_mensagem(driver, contato, grupo, mensagem, cod, emp, modelo):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
