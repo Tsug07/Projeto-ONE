@@ -48,10 +48,10 @@ MODELOS = {
         "colunas": ["Codigo", "Empresa", "Contato Onvio", "Grupo Onvio"],
         "mensagem_padrao": "Mensagem Padrão"
     },
-    "ProrContrato": {
-        "colunas": ["Codigo", "Contato Onvio", "Grupo Onvio", "Nome", "Vencimento"],
-        "mensagem_padrao": "Prorrogação Contrato"
-    },
+    # "ProrContrato": {
+    #     "colunas": ["Codigo", "Contato Onvio", "Grupo Onvio", "Nome", "Vencimento"],
+    #     "mensagem_padrao": "Prorrogação Contrato"
+    # },
     "Cobranca": {
         "colunas": ["Código", "Empresa", "Contato Onvio", "Grupo Onvio", "Valor da Parcela", "Data de Vencimento", "Carta de Aviso"],
         "mensagem_padrao": "Cobranca"
@@ -475,12 +475,26 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                         }
                 
                 else:  # Modelo ALL
-                    pessoas, nome_contato, nome_grupo = row[1:4]
-                    dados[codigo] = {
-                        'empresa': pessoas,
-                        'nome_contato': nome_contato,
-                        'nome_grupo': nome_grupo
-                    }
+                    empresa, nome_contato, nome_grupo = row[1:4]
+                    # Validar e normalizar valores vazios
+                    nome_contato = str(nome_contato) if nome_contato is not None else "NONE"
+                    nome_grupo = str(nome_grupo) if nome_grupo is not None else "NONE"
+                    # Agrupar por contato ou grupo (se contato for "NONE")
+                    chave = nome_contato if nome_contato.upper() != "NONE" else nome_grupo
+                    if chave in dados:
+                        dados[chave]['empresas'].append({
+                            'codigo': codigo,
+                            'empresa': empresa
+                        })
+                    else:
+                        dados[chave] = {
+                            'nome_contato': nome_contato,
+                            'nome_grupo': nome_grupo,
+                            'empresas': [{
+                                'codigo': codigo,
+                                'empresa': empresa
+                            }]
+                        }
             else:
                 atualizar_log(f"Linha ignorada: {row}")
         return dados if dados else None
@@ -490,18 +504,18 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
 
 def extrair_dados(dados, modelo):
     codigos, nome_contatos, nome_grupos = [], [], []
-    if modelo == "ProrContrato":
-        pessoas, vencimentos = [], []
-        for cod, info in dados.items():
-            codigos.append(cod)
-            nome_contatos.append(info['nome_contato'])
-            nome_grupos.append(info['nome_grupo'])
-            pessoas_lista = [det['pessoas'] for det in info['detalhes']]
-            vencimentos_lista = [det['vencimentos'] for det in info['detalhes']]
-            pessoas.append(pessoas_lista)
-            vencimentos.append(vencimentos_lista)
-        return codigos, nome_contatos, nome_grupos, pessoas, vencimentos
-    elif modelo == "Cobranca":
+    # if modelo == "ProrContrato":
+    #     pessoas, vencimentos = [], []
+    #     for cod, info in dados.items():
+    #         codigos.append(cod)
+    #         nome_contatos.append(info['nome_contato'])
+    #         nome_grupos.append(info['nome_grupo'])
+    #         pessoas_lista = [det['pessoas'] for det in info['detalhes']]
+    #         vencimentos_lista = [det['vencimentos'] for det in info['detalhes']]
+    #         pessoas.append(pessoas_lista)
+    #         vencimentos.append(vencimentos_lista)
+    #     return codigos, nome_contatos, nome_grupos, pessoas, vencimentos
+    if modelo == "Cobranca":
         nome, valores, vencimentos, cartas = [], [], [], []
         # Iterar sobre o dicionário, onde a chave é o código da empresa
         for cod, info in dados.items():
@@ -551,13 +565,14 @@ def extrair_dados(dados, modelo):
         return contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista
     
     else:  # Modelo ALL
-        empresas = []
-        for cod, info in dados.items():
-            codigos.append(cod)
-            empresas.append(info['empresa'])
+        contatos, nome_contatos, nome_grupos, empresas_lista = [], [], [], []
+        for chave, info in dados.items():
+            contatos.append(chave)
             nome_contatos.append(info['nome_contato'])
             nome_grupos.append(info['nome_grupo'])
-        return codigos, empresas, nome_contatos, nome_grupos
+            empresas = [(emp['codigo'], emp['empresa']) for emp in info['empresas']]
+            empresas_lista.append(empresas)
+        return contatos, nome_contatos, nome_grupos, empresas_lista
     
 def formatar_cnpj(cnpj):
     # Remover caracteres não numéricos
@@ -591,10 +606,10 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
     mensagens = carregar_mensagens()
     msg = mensagens.get(mensagem_selecionada.get(), MODELOS[modelo]["mensagem_padrao"])
     
-    if modelo == "ProrContrato" and pessoas and vencimentos:
-        pv = "\n".join([f"{p} se encerrará em {v}" for p, v in zip(pessoas, vencimentos)])
-        msg = msg.format(pessoas_vencimentos=pv)
-    elif modelo == "Cobranca" and valores and vencimentos and nome_empresa and carta is not None:
+    # if modelo == "ProrContrato" and pessoas and vencimentos:
+    #     pv = "\n".join([f"{p} se encerrará em {v}" for p, v in zip(pessoas, vencimentos)])
+    #     msg = msg.format(pessoas_vencimentos=pv)
+    if modelo == "Cobranca" and valores and vencimentos and nome_empresa and carta is not None:
         # Formatar valores com vírgula como separador decimal
         valores_formatados = [f"{valor:.2f}".replace('.', ',') for valor in valores]
         total_formatado = f"{sum(valores):.2f}".replace('.', ',')
@@ -612,7 +627,7 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
         msg = mensagens.get(msg_key, mensagens.get("Certificado_1", "Mensagem de cobrança padrão não encontrada."))
         msg = msg.format(nome=nome_empresa, cnpj_formatado=cnpj_formatado, datas=vencimentos)
     
-    elif modelo == "ONE":
+    elif modelo in ["ONE", "ALL"]:
         # normaliza nome_empresa para lista de nomes
         if isinstance(nome_empresa, list):
             nomes_empresas = nome_empresa
@@ -623,7 +638,7 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
 
         # Pegar a mensagem selecionada pelo usuário
         msg_selecionada = mensagem_selecionada.get()
-        
+
         # Verificar se é uma mensagem que NÃO usa dados (sem placeholders)
         if msg_selecionada == "ONEmessage":
             # Mensagem simples sem dados dinâmicos
@@ -708,25 +723,25 @@ def processar_dados(excel, modelo, linha_inicial):
         atualizar_log("Nenhum dado para processar.", cor="vermelho")
         return
     total_linhas = openpyxl.load_workbook(excel).active.max_row - linha_inicial + 1
-    if modelo == "ProrContrato":
-        codigos, nome_contatos, nome_grupos, pessoas, vencimentos = extrair_dados(dados, modelo)
-        total_contatos = len(codigos)
-        for i, (cod, contato, grupo, p, v) in enumerate(zip(codigos, nome_contatos, nome_grupos, pessoas, vencimentos)):
-            if cancelar:
-                atualizar_log("Processamento cancelado!", cor="azul")
-                return
-            linha_atual = linha_inicial + i
-            porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
-            atualizar_log(f"Linha: {linha_atual}")
-            atualizar_log(f"\nProcessando Empresa: {cod}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
-            mensagem = mensagem_padrao(modelo, pessoas=p, vencimentos=v)
-            if enviar_mensagem(driver, contato, grupo, mensagem, cod, p[0]):
-                with open(log_file_path, 'a', encoding='utf-8') as f:
-                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
-            time.sleep(5)
+    # if modelo == "ProrContrato":
+    #     codigos, nome_contatos, nome_grupos, pessoas, vencimentos = extrair_dados(dados, modelo)
+    #     total_contatos = len(codigos)
+    #     for i, (cod, contato, grupo, p, v) in enumerate(zip(codigos, nome_contatos, nome_grupos, pessoas, vencimentos)):
+    #         if cancelar:
+    #             atualizar_log("Processamento cancelado!", cor="azul")
+    #             return
+    #         linha_atual = linha_inicial + i
+    #         porcentagem = ((i + 1) / total_contatos) * 100
+    #         atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
+    #         atualizar_log(f"Linha: {linha_atual}")
+    #         atualizar_log(f"\nProcessando Empresa: {cod}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
+    #         mensagem = mensagem_padrao(modelo, pessoas=p, vencimentos=v)
+    #         if enviar_mensagem(driver, contato, grupo, mensagem, cod, p[0]):
+    #             with open(log_file_path, 'a', encoding='utf-8') as f:
+    #                 f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
+    #         time.sleep(5)
 
-    elif modelo == "Cobranca":
+    if modelo == "Cobranca":
         codigos, nomes, nome_contatos, nome_grupos, valores, vencimentos, cartas = extrair_dados(dados, modelo)
         total_contatos = len(codigos)
         for i, (cod, nome_emp, contato, grupo, p, v, carta) in enumerate(zip(codigos, nomes, nome_contatos, nome_grupos, valores, vencimentos, cartas)):
@@ -794,21 +809,36 @@ def processar_dados(excel, modelo, linha_inicial):
             linha_atual += num_empresas
             
     else:  # Modelo ALL
-        codigos, empresas, nome_contatos, nome_grupos = extrair_dados(dados, modelo)
-        total_contatos = len(codigos)
-        for i, (cod, emp, contato, grupo) in enumerate(zip(codigos, empresas, nome_contatos, nome_grupos)):
+        contatos, nome_contatos, nome_grupos, empresas_lista = extrair_dados(dados, modelo)
+        total_contatos = len(contatos)
+        linha_atual = linha_inicial
+        for i, (contato_key, contato, grupo, empresas) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista)):
             if cancelar:
                 atualizar_log("Processamento cancelado!", cor="azul")
                 return
-            linha_atual = linha_inicial + i
+            # Incrementar linha_atual com base no número de empresas processadas
+            num_empresas = len(empresas)
+            linha_atual_final = linha_atual + num_empresas - 1
             porcentagem = ((i + 1) / total_contatos) * 100
-            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
-            atualizar_log(f"\nProcessando {cod} - {emp}: Contato: {contato}, Grupo: {grupo}\n", cor="azul")
-            mensagem = mensagem_padrao(modelo, nome_empresa=emp)
-            if enviar_mensagem(driver, contato, grupo, mensagem, cod, emp, modelo):
+            atualizar_progresso(porcentagem, f"{linha_atual_final}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas\n", cor="azul")
+            for cod, emp in empresas:
+                atualizar_log(f"Empresa: {cod} - {emp}")
+
+            # Monta lista com os nomes das empresas
+            nomes_empresas = [emp for _, emp in empresas]
+
+            # Passa a lista de empresas para a mensagem
+            mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas)
+
+            # Enviar uma única mensagem
+            identificador = ", ".join(nomes_empresas)
+            if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
-                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s)\n")
+
             time.sleep(5)
+            linha_atual += num_empresas
     atualizar_progresso(100, "Concluído")
     atualizar_log("Processamento finalizado!", cor="verde")
     finalizar_programa()
