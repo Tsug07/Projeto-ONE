@@ -33,6 +33,8 @@ ctk.set_default_color_theme("dark-blue")
 # Variáveis globais
 cancelar = False
 log_file_path = None
+anexo_habilitado = None  # Variável para checkbox de anexo
+caminho_anexo = None  # Variável para caminho do arquivo anexo
 
 # Modelos suportados
 MODELOS = {
@@ -47,6 +49,10 @@ MODELOS = {
     "ALL": {
         "colunas": ["Codigo", "Empresa", "Contato Onvio", "Grupo Onvio"],
         "mensagem_padrao": "Mensagem Padrão"
+    },
+    "ALL_info": {
+        "colunas": ["Codigo", "Empresa", "Contato Onvio", "Grupo Onvio", "Competencia"],
+        "mensagem_padrao": "ALLinfo"
     },
     # "ProrContrato": {
     #     "colunas": ["Codigo", "Contato Onvio", "Grupo Onvio", "Nome", "Vencimento"],
@@ -104,7 +110,7 @@ def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
             except:
                 atualizar_log("Erro ao clicar no botão de enviar.", cor="vermelho")
                 return False
-            if modelo == "ONE" and caminhos:
+            if caminhos:  # Enviar anexo para qualquer modelo que tenha caminhos
                 try:
                     input_file = WebDriverWait(driver, 10).until(
                         EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='file']"))
@@ -419,7 +425,7 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                 elif modelo == "Cobranca":
                     codigo, nome, nome_contato, nome_grupo, valores, vencimentos, cartas = row[:7]
                     
-                    if not isinstance(cartas, (int, float)) or not 1 <= int(cartas) <= 6:
+                    if not isinstance(cartas, (int, float)) or not 1 <= int(cartas) <= 7:
                         atualizar_log(f"Linha ignorada: Carta de aviso inválida ({cartas}) na linha {row[0]}", cor="vermelho")
                         continue
                     # Se o código da empresa já está no dicionário, adiciona as novas informações à lista
@@ -474,6 +480,33 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                             }]
                         }
                 
+                elif modelo == "ALL_info":
+                    empresa, nome_contato, nome_grupo, competencia = row[1:5]
+                    # Validar e normalizar valores vazios
+                    nome_contato = str(nome_contato) if nome_contato is not None else "NONE"
+                    nome_grupo = str(nome_grupo) if nome_grupo is not None else "NONE"
+                    competencia = str(competencia) if competencia is not None else ""
+                    # Agrupar por contato ou grupo (se contato for "NONE")
+                    chave = nome_contato if nome_contato.upper() != "NONE" else nome_grupo
+                    if chave in dados:
+                        dados[chave]['empresas'].append({
+                            'codigo': codigo,
+                            'empresa': empresa
+                        })
+                        # Armazenar competência (assumindo que é a mesma para todas as empresas do mesmo contato)
+                        if 'competencia' not in dados[chave]:
+                            dados[chave]['competencia'] = competencia
+                    else:
+                        dados[chave] = {
+                            'nome_contato': nome_contato,
+                            'nome_grupo': nome_grupo,
+                            'competencia': competencia,
+                            'empresas': [{
+                                'codigo': codigo,
+                                'empresa': empresa
+                            }]
+                        }
+
                 else:  # Modelo ALL
                     empresa, nome_contato, nome_grupo = row[1:4]
                     # Validar e normalizar valores vazios
@@ -563,7 +596,18 @@ def extrair_dados(dados, modelo):
             empresas_lista.append(empresas)
             caminhos_lista.append([emp['caminho'] for emp in info['empresas']])
         return contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista
-    
+
+    elif modelo == "ALL_info":
+        contatos, nome_contatos, nome_grupos, empresas_lista, competencias = [], [], [], [], []
+        for chave, info in dados.items():
+            contatos.append(chave)
+            nome_contatos.append(info['nome_contato'])
+            nome_grupos.append(info['nome_grupo'])
+            competencias.append(info.get('competencia', ''))
+            empresas = [(emp['codigo'], emp['empresa']) for emp in info['empresas']]
+            empresas_lista.append(empresas)
+        return contatos, nome_contatos, nome_grupos, empresas_lista, competencias
+
     else:  # Modelo ALL
         contatos, nome_contatos, nome_grupos, empresas_lista = [], [], [], []
         for chave, info in dados.items():
@@ -602,7 +646,7 @@ def salvar_mensagens(mensagens):
     with open("mensagens.json", "w", encoding="utf-8") as f:
         json.dump(mensagens, f, ensure_ascii=False, indent=4)
 
-def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=None, cnpj=None, nome_empresa=None):
+def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=None, cnpj=None, nome_empresa=None, competencia=None):
     mensagens = carregar_mensagens()
     msg = mensagens.get(mensagem_selecionada.get(), MODELOS[modelo]["mensagem_padrao"])
     
@@ -627,7 +671,7 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
         msg = mensagens.get(msg_key, mensagens.get("Certificado_1", "Mensagem de cobrança padrão não encontrada."))
         msg = msg.format(nome=nome_empresa, cnpj_formatado=cnpj_formatado, datas=vencimentos)
     
-    elif modelo in ["ONE", "ALL"]:
+    elif modelo in ["ONE", "ALL", "ALL_info"]:
         # normaliza nome_empresa para lista de nomes
         if isinstance(nome_empresa, list):
             nomes_empresas = nome_empresa
@@ -644,24 +688,30 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
             # Mensagem simples sem dados dinâmicos
             msg = mensagens.get(msg_selecionada, "Mensagem padrão não encontrada.")
         else:
-            # Mensagem com dados (Parabens_Regularizado)
+            # Mensagem com dados (Parabens_Regularizado, ALLinfo, etc.)
             if len(nomes_empresas) > 1:
                 # Múltiplas empresas - usa versão _multi
                 msg_key = f"{msg_selecionada}_multi" if f"{msg_selecionada}_multi" in mensagens else msg_selecionada
                 msg = mensagens.get(msg_key, mensagens.get(msg_selecionada, "Mensagem padrão não encontrada."))
                 lista_empresas = "\n".join([f". {emp}" for emp in nomes_empresas])
-                # Tentar formatar com lista_empresas, se falhar, enviar sem formatação
+                # Tentar formatar com lista_empresas e competência, se falhar, enviar sem formatação
                 try:
-                    msg = msg.format(empresas=lista_empresas)
+                    if competencia:
+                        msg = msg.format(empresas=lista_empresas, competencia=competencia)
+                    else:
+                        msg = msg.format(empresas=lista_empresas)
                 except KeyError:
                     pass
             else:
                 # Uma única empresa
                 msg = mensagens.get(msg_selecionada, "Mensagem padrão não encontrada.")
                 nome_unico = nomes_empresas[0] if nomes_empresas else ""
-                # Tentar formatar com nome, se falhar, enviar sem formatação
+                # Tentar formatar com nome e competência, se falhar, enviar sem formatação
                 try:
-                    msg = msg.format(nome=nome_unico)
+                    if competencia:
+                        msg = msg.format(nome=nome_unico, competencia=competencia)
+                    else:
+                        msg = msg.format(nome=nome_unico)
                 except KeyError:
                     pass
     return msg
@@ -808,10 +858,53 @@ def processar_dados(excel, modelo, linha_inicial):
             time.sleep(5)
             linha_atual += num_empresas
             
+    elif modelo == "ALL_info":
+        contatos, nome_contatos, nome_grupos, empresas_lista, competencias = extrair_dados(dados, modelo)
+        total_contatos = len(contatos)
+        linha_atual = linha_inicial
+        for i, (contato_key, contato, grupo, empresas, competencia) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, competencias)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                return
+            # Incrementar linha_atual com base no número de empresas processadas
+            num_empresas = len(empresas)
+            linha_atual_final = linha_atual + num_empresas - 1
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"{linha_atual_final}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas - Competência: {competencia}\n", cor="azul")
+            for cod, emp in empresas:
+                atualizar_log(f"Empresa: {cod} - {emp}")
+
+            # Monta lista com os nomes das empresas
+            nomes_empresas = [emp for _, emp in empresas]
+
+            # Passa a lista de empresas e competência para a mensagem
+            mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas, competencia=competencia)
+
+            # Enviar uma única mensagem
+            identificador = ", ".join(nomes_empresas)
+            if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s) - Competência: {competencia}\n")
+
+            time.sleep(5)
+            linha_atual += num_empresas
+
     else:  # Modelo ALL
         contatos, nome_contatos, nome_grupos, empresas_lista = extrair_dados(dados, modelo)
         total_contatos = len(contatos)
         linha_atual = linha_inicial
+
+        # Verificar se há anexo habilitado
+        arquivo_anexo = None
+        if anexo_habilitado and anexo_habilitado.get() and caminho_anexo and caminho_anexo.get():
+            arquivo_anexo = caminho_anexo.get()
+            if os.path.exists(arquivo_anexo):
+                atualizar_log(f"Anexo configurado: {arquivo_anexo}", cor="azul")
+            else:
+                atualizar_log(f"Arquivo anexo não encontrado: {arquivo_anexo}", cor="vermelho")
+                arquivo_anexo = None
+
         for i, (contato_key, contato, grupo, empresas) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista)):
             if cancelar:
                 atualizar_log("Processamento cancelado!", cor="azul")
@@ -831,11 +924,13 @@ def processar_dados(excel, modelo, linha_inicial):
             # Passa a lista de empresas para a mensagem
             mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas)
 
-            # Enviar uma única mensagem
+            # Enviar uma única mensagem (com anexo opcional)
             identificador = ", ".join(nomes_empresas)
-            if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo):
+            caminhos_envio = [arquivo_anexo] if arquivo_anexo else None
+            if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo, caminhos_envio):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
-                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s)\n")
+                    anexo_info = " + anexo" if arquivo_anexo else ""
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s){anexo_info}\n")
 
             time.sleep(5)
             linha_atual += num_empresas
@@ -914,7 +1009,7 @@ def iniciar_chrome_automacao():
 
 # Interface Principal
 def main():
-    global janela, caminho_excel, modelo_selecionado, mensagem_selecionada, botao_iniciar, botao_fechar, log_text, progresso, progresso_texto, entrada_linha_inicial, botao_iniciar_chrome
+    global janela, caminho_excel, modelo_selecionado, mensagem_selecionada, botao_iniciar, botao_fechar, log_text, progresso, progresso_texto, entrada_linha_inicial, botao_iniciar_chrome, anexo_habilitado, caminho_anexo
 
     janela = ctk.CTk()
     janela.title("AutoMessenger ONE")
@@ -1062,6 +1157,41 @@ def main():
     # Novo botão para iniciar Chrome
     botao_iniciar_chrome = ctk.CTkButton(frame_mensagem, text="Iniciar Chrome de Automação", command=iniciar_chrome_automacao)
     botao_iniciar_chrome.grid(row=0, column=3, padx=5, pady=5)
+
+    # Frame para anexo opcional
+    frame_anexo = ctk.CTkFrame(janela)
+    frame_anexo.pack(fill="x", padx=10, pady=5)
+
+    anexo_habilitado = ctk.BooleanVar(value=False)
+    caminho_anexo = ctk.StringVar()
+
+    checkbox_anexo = ctk.CTkCheckBox(frame_anexo, text="Enviar arquivo anexo", variable=anexo_habilitado, command=lambda: toggle_anexo())
+    checkbox_anexo.grid(row=0, column=0, pady=5, padx=5, sticky="w")
+
+    entrada_anexo = ctk.CTkEntry(frame_anexo, textvariable=caminho_anexo, width=350, state="disabled")
+    entrada_anexo.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+
+    def selecionar_anexo():
+        arquivo = filedialog.askopenfilename(filetypes=[
+            ("Imagens", "*.jpg *.jpeg *.png *.gif *.bmp"),
+            ("PDF", "*.pdf"),
+            ("Todos os arquivos", "*.*")
+        ])
+        if arquivo:
+            caminho_anexo.set(arquivo)
+            atualizar_log(f"Arquivo anexo selecionado: {arquivo}")
+
+    botao_anexo = ctk.CTkButton(frame_anexo, text="Selecionar Arquivo", command=selecionar_anexo, state="disabled")
+    botao_anexo.grid(row=0, column=2, padx=5, pady=5)
+
+    def toggle_anexo():
+        if anexo_habilitado.get():
+            entrada_anexo.configure(state="normal")
+            botao_anexo.configure(state="normal")
+        else:
+            entrada_anexo.configure(state="disabled")
+            botao_anexo.configure(state="disabled")
+            caminho_anexo.set("")
 
     frame_botoes = ctk.CTkFrame(janela)
     frame_botoes.pack(fill="x", padx=10, pady=5)
