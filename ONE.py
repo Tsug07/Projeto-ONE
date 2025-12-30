@@ -35,6 +35,13 @@ cancelar = False
 log_file_path = None
 anexo_habilitado = None  # Variável para checkbox de anexo
 caminho_anexo = None  # Variável para caminho do arquivo anexo
+agendamento_ativo = None  # Timer do agendamento
+contagem_regressiva_ativa = False  # Flag para contagem regressiva
+data_hora_agendada = None  # Data/hora do agendamento
+perfil_selecionado = None  # Perfil do Chrome (1 ou 2)
+driver_agendamento = None  # Driver do Chrome para agendamento
+keep_alive_ativo = False  # Flag para keep-alive
+KEEP_ALIVE_INTERVALO = 30 * 60 * 1000  # 30 minutos em milissegundos
 
 # Modelos suportados
 MODELOS = {
@@ -141,7 +148,8 @@ def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
                         )
                         botao_enviar_arquivo.click()
                         atualizar_log("Botão de enviar arquivo clicado com sucesso.")
-                        time.sleep(3)
+                        atualizar_log("Aguardando upload do arquivo (pode demorar para vídeos)...", cor="azul")
+                        time.sleep(10)  # Delay maior para vídeos carregarem
                     else:
                         atualizar_log("Nenhum arquivo válido para anexar.", cor="vermelho")
                         return False
@@ -272,25 +280,34 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, mod
         return False
 
 # Funções de Navegação e Automação (reutilizadas do main.py e prorcontrato.py)
+def obter_perfil_chrome():
+    """Retorna o nome do perfil baseado na seleção do usuário"""
+    perfil = perfil_selecionado.get() if perfil_selecionado else "1"
+    return f"Profile {perfil}"
+
 def abrir_chrome_com_url(url):
     encerrar_processos_chrome()
-    user_data_dir = r"C:\PerfisChrome\automacao"  # o mesmo caminho usado no passo 1
-    profile_dir = os.path.join(user_data_dir, "Profile 1")
+    user_data_dir = r"C:\PerfisChrome\automacao"
+    perfil = obter_perfil_chrome()
+    profile_dir = os.path.join(user_data_dir, perfil)
+
     # Verificar se o diretório do perfil existe
     if not os.path.exists(profile_dir):
-        atualizar_log(f"Perfil 'Profile 1' não encontrado em {user_data_dir}.", cor="vermelho")
+        atualizar_log(f"Perfil '{perfil}' não encontrado em {user_data_dir}.", cor="vermelho")
         atualizar_log("Um novo perfil será criado. Por favor, faça login na página aberta para continuar.", cor="azul")
-        
+
+    atualizar_log(f"Usando perfil: {perfil}", cor="azul")
+
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
-    chrome_options.add_argument("--profile-directory=Profile 1")
+    chrome_options.add_argument(f"--profile-directory={perfil}")
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--disable-translate")
     chrome_options.add_argument("--lang=pt-BR")
     chrome_options.add_argument("--enable-javascript")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    
+
     service = Service(ChromeDriverManager().install())
     try:
         driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -303,14 +320,17 @@ def abrir_chrome_com_url(url):
         return None
 
 def encerrar_processos_chrome():
+    """Encerra apenas os processos Chrome do perfil selecionado"""
+    perfil = obter_perfil_chrome()
     for proc in psutil.process_iter(['name', 'cmdline']):
         if proc.info['name'] == 'chrome.exe':
             try:
                 cmdline = proc.info['cmdline'] or []
                 cmdline_str = ' '.join(cmdline)
-                if '--user-data-dir=C:\\PerfisChrome\\automacao' in cmdline_str and '--profile-directory=Profile 1' in cmdline_str:
+                # Só encerra o Chrome do perfil selecionado
+                if '--user-data-dir=C:\\PerfisChrome\\automacao' in cmdline_str and f'--profile-directory={perfil}' in cmdline_str:
                     proc.terminate()
-                    atualizar_log(f"Processo Chrome de automação (PID: {proc.pid}) encerrado.")
+                    atualizar_log(f"Processo Chrome ({perfil}) encerrado (PID: {proc.pid}).")
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
     time.sleep(2)
@@ -738,8 +758,14 @@ def atualizar_mensagem_padrao(*args):
         mensagem_selecionada.set(mensagem_padrao_key)
 
 def iniciar_processamento():
-    global cancelar
+    global cancelar, driver_agendamento, keep_alive_ativo
     cancelar = False
+
+    # Verificar se há agendamento ativo - não permitir iniciar manualmente
+    if agendamento_ativo or keep_alive_ativo:
+        messagebox.showwarning("Atenção", "Há um agendamento ativo. Cancele o agendamento antes de iniciar manualmente.")
+        return
+
     excel = caminho_excel.get()
     modelo = modelo_selecionado.get()
     if not excel or not modelo:
@@ -755,6 +781,7 @@ def iniciar_processamento():
     atualizar_log("Iniciando processamento...", cor="azul")
     botao_iniciar.configure(state="disabled")
     botao_iniciar_chrome.configure(state="disabled")  # Desativar o botão de Chrome
+    botao_agendar.configure(state="disabled")  # Desativar agendamento durante processamento
     inicializar_arquivo_log(modelo)
     thread = threading.Thread(target=processar_dados, args=(excel, modelo, linha))
     thread.start()
@@ -946,6 +973,17 @@ def cancelar_processamento():
     botao_fechar.configure(state="normal")
 
 def fechar_programa():
+    global agendamento_ativo, keep_alive_ativo
+
+    # Cancelar agendamento se estiver ativo
+    if agendamento_ativo:
+        agendamento_ativo.cancel()
+        agendamento_ativo = None
+
+    # Parar keep-alive e fechar Chrome do agendamento
+    parar_keep_alive()
+    fechar_chrome_agendamento()
+
     janela.quit()
 
 def finalizar_programa():
@@ -953,6 +991,189 @@ def finalizar_programa():
     botao_fechar.configure(state="normal")
     botao_iniciar.configure(state="normal")
     botao_iniciar_chrome.configure(state="normal")  # Reativar o botão de Chrome
+    botao_agendar.configure(state="normal")  # Reativar agendamento
+
+def finalizar_programa_agendado():
+    """Finaliza o programa após processamento agendado e fecha o Chrome"""
+    global driver_agendamento
+    messagebox.showinfo("Processo Finalizado", "Processamento agendado concluído!")
+    botao_fechar.configure(state="normal")
+    botao_iniciar.configure(state="normal")
+    botao_iniciar_chrome.configure(state="normal")
+    botao_agendar.configure(state="normal")
+
+    # Fechar o Chrome do agendamento
+    fechar_chrome_agendamento()
+
+def processar_dados_agendado(excel, modelo, linha_inicial):
+    """Processa os dados usando o driver já aberto pelo agendamento"""
+    global driver_agendamento
+
+    driver = driver_agendamento
+
+    if not driver:
+        atualizar_log("Driver não encontrado. Tentando abrir novo Chrome...", cor="vermelho")
+        url = "https://app.gestta.com.br/attendance/#/chat/contact-list"
+        driver = abrir_chrome_com_url(url)
+        if not driver:
+            atualizar_log("Não foi possível abrir o Chrome. Processamento abortado.", cor="vermelho")
+            finalizar_programa_agendado()
+            return
+
+    # Verificar se o driver ainda está ativo
+    try:
+        driver.current_url
+    except:
+        atualizar_log("Sessão expirada. Tentando reconectar...", cor="vermelho")
+        url = "https://app.gestta.com.br/attendance/#/chat/contact-list"
+        driver = abrir_chrome_com_url(url)
+        if not driver:
+            atualizar_log("Não foi possível reconectar. Processamento abortado.", cor="vermelho")
+            finalizar_programa_agendado()
+            return
+        driver_agendamento = driver
+
+    time.sleep(5)
+    dados = ler_dados_excel(excel, modelo, linha_inicial)
+    if not dados:
+        atualizar_log("Nenhum dado para processar.", cor="vermelho")
+        finalizar_programa_agendado()
+        return
+
+    total_linhas = openpyxl.load_workbook(excel).active.max_row - linha_inicial + 1
+    processamento_cancelado = False
+
+    if modelo == "Cobranca":
+        codigos, nomes, nome_contatos, nome_grupos, valores, vencimentos, cartas = extrair_dados(dados, modelo)
+        total_contatos = len(codigos)
+        for i, (cod, nome_emp, contato, grupo, p, v, carta) in enumerate(zip(codigos, nomes, nome_contatos, nome_grupos, valores, vencimentos, cartas)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                processamento_cancelado = True
+                break
+            linha_atual = linha_inicial + i
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"Linha: {linha_atual}")
+            atualizar_log(f"\nProcessando contato da empresa {cod} - {nome_emp}: Contato: {contato}, Grupo: {grupo}, Aviso nº: {carta}\n", cor="azul")
+            mensagem = mensagem_padrao(modelo, valores=p, vencimentos=v, carta=carta, nome_empresa=nome_emp)
+            if enviar_mensagem(driver, contato, grupo, mensagem, cod, nome_emp):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
+            time.sleep(5)
+
+    elif modelo == "ComuniCertificado":
+        codigos, nomes, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas = extrair_dados(dados, modelo)
+        total_contatos = len(codigos)
+        for i, (cod, nome_emp, contato, grupo, c, v, carta) in enumerate(zip(codigos, nomes, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                processamento_cancelado = True
+                break
+            linha_atual = linha_inicial + i
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"{linha_atual}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"Linha: {linha_atual}")
+            atualizar_log(f"\nProcessando contato da empresa {cod} - {nome_emp}: Contato: {contato}, Grupo: {grupo}, Aviso nº: {carta}\n", cor="azul")
+            mensagem = mensagem_padrao(modelo, vencimentos=v, carta=carta, cnpj=c, nome_empresa=nome_emp)
+            if enviar_mensagem(driver, contato, grupo, mensagem, cod, nome_emp):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
+            time.sleep(5)
+
+    elif modelo == "ONE":
+        contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista = extrair_dados(dados, modelo)
+        total_contatos = len(contatos)
+        linha_atual = linha_inicial
+        for i, (contato_key, contato, grupo, empresas, caminhos) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                processamento_cancelado = True
+                break
+            num_empresas = len(empresas)
+            linha_atual_final = linha_atual + num_empresas - 1
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"{linha_atual_final}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas\n", cor="azul")
+            for cod, emp, _ in empresas:
+                atualizar_log(f"Empresa: {cod} - {emp}")
+            nomes_empresas = [emp for _, emp, _ in empresas]
+            mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas)
+            identificador = ", ".join(nomes_empresas)
+            if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo, caminhos):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} arquivos\n")
+            time.sleep(5)
+            linha_atual += num_empresas
+
+    elif modelo == "ALL_info":
+        contatos, nome_contatos, nome_grupos, empresas_lista, competencias = extrair_dados(dados, modelo)
+        total_contatos = len(contatos)
+        linha_atual = linha_inicial
+        for i, (contato_key, contato, grupo, empresas, competencia) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, competencias)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                processamento_cancelado = True
+                break
+            num_empresas = len(empresas)
+            linha_atual_final = linha_atual + num_empresas - 1
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"{linha_atual_final}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas - Competência: {competencia}\n", cor="azul")
+            for cod, emp in empresas:
+                atualizar_log(f"Empresa: {cod} - {emp}")
+            nomes_empresas = [emp for _, emp in empresas]
+            mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas, competencia=competencia)
+            identificador = ", ".join(nomes_empresas)
+            if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s) - Competência: {competencia}\n")
+            time.sleep(5)
+            linha_atual += num_empresas
+
+    else:  # Modelo ALL
+        contatos, nome_contatos, nome_grupos, empresas_lista = extrair_dados(dados, modelo)
+        total_contatos = len(contatos)
+        linha_atual = linha_inicial
+
+        arquivo_anexo = None
+        if anexo_habilitado and anexo_habilitado.get() and caminho_anexo and caminho_anexo.get():
+            arquivo_anexo = caminho_anexo.get()
+            if os.path.exists(arquivo_anexo):
+                atualizar_log(f"Anexo configurado: {arquivo_anexo}", cor="azul")
+            else:
+                atualizar_log(f"Arquivo anexo não encontrado: {arquivo_anexo}", cor="vermelho")
+                arquivo_anexo = None
+
+        for i, (contato_key, contato, grupo, empresas) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista)):
+            if cancelar:
+                atualizar_log("Processamento cancelado!", cor="azul")
+                processamento_cancelado = True
+                break
+            num_empresas = len(empresas)
+            linha_atual_final = linha_atual + num_empresas - 1
+            porcentagem = ((i + 1) / total_contatos) * 100
+            atualizar_progresso(porcentagem, f"{linha_atual_final}/{total_linhas + linha_inicial - 1}")
+            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas\n", cor="azul")
+            for cod, emp in empresas:
+                atualizar_log(f"Empresa: {cod} - {emp}")
+            nomes_empresas = [emp for _, emp in empresas]
+            mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas)
+            identificador = ", ".join(nomes_empresas)
+            caminhos_envio = [arquivo_anexo] if arquivo_anexo else None
+            if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo, caminhos_envio):
+                with open(log_file_path, 'a', encoding='utf-8') as f:
+                    anexo_info = " + anexo" if arquivo_anexo else ""
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s){anexo_info}\n")
+            time.sleep(5)
+            linha_atual += num_empresas
+
+    if not processamento_cancelado:
+        atualizar_progresso(100, "Concluído")
+        atualizar_log("Processamento agendado finalizado!", cor="verde")
+
+    # Sempre finalizar e fechar o Chrome, mesmo se cancelado
+    finalizar_programa_agendado()
 
 def abrir_log():
     if log_file_path and os.path.exists(log_file_path):
@@ -998,6 +1219,11 @@ def atualizar_progresso(valor, texto=""):
     janela.update_idletasks()
 
 def iniciar_chrome_automacao():
+    # Verificar se há agendamento ativo
+    if agendamento_ativo or keep_alive_ativo:
+        messagebox.showwarning("Atenção", "Há um agendamento ativo. Cancele o agendamento antes de abrir o Chrome manualmente.")
+        return
+
     atualizar_log("Iniciando configuração do Chrome de automação...", cor="azul")
     url = "https://onvio.com.br/staff/#/dashboard-core-center"
     driver = abrir_chrome_com_url(url)
@@ -1007,13 +1233,349 @@ def iniciar_chrome_automacao():
     else:
         atualizar_log("Falha ao abrir o Chrome de automação.", cor="vermelho")
 
+# Funções de Agendamento
+def agendar_processamento():
+    global agendamento_ativo, contagem_regressiva_ativa, data_hora_agendada, driver_agendamento
+
+    # Validar campos antes de agendar
+    excel = caminho_excel.get()
+    modelo = modelo_selecionado.get()
+    if not excel or not modelo:
+        messagebox.showwarning("Atenção", "Selecione um modelo e um arquivo Excel antes de agendar.")
+        return
+
+    try:
+        linha = int(entrada_linha_inicial.get())
+        if linha < 2:
+            raise ValueError("Linha inicial deve ser >= 2")
+    except ValueError:
+        messagebox.showwarning("Atenção", "Linha inicial deve ser um número inteiro >= 2.")
+        return
+
+    # Obter data e hora do agendamento
+    try:
+        data_str = entrada_data.get().strip()
+        hora_str = entrada_hora.get().strip()
+
+        # Validar formato
+        if not data_str or not hora_str:
+            messagebox.showwarning("Atenção", "Preencha a data e hora do agendamento.")
+            return
+
+        # Normalizar data: aceita 02012025 ou 02/01/2025
+        data_str = data_str.replace("/", "").replace("-", "").replace(".", "")
+        if len(data_str) == 8 and data_str.isdigit():
+            data_str = f"{data_str[:2]}/{data_str[2:4]}/{data_str[4:]}"
+
+        # Normalizar hora: aceita 0830 ou 08:30
+        hora_str = hora_str.replace(":", "").replace(".", "").replace("-", "")
+        if len(hora_str) == 4 and hora_str.isdigit():
+            hora_str = f"{hora_str[:2]}:{hora_str[2:]}"
+
+        # Converter para datetime
+        data_hora_str = f"{data_str} {hora_str}"
+        data_hora_agendada = datetime.strptime(data_hora_str, "%d/%m/%Y %H:%M")
+
+        # Verificar se a data é futura
+        agora = datetime.now()
+        if data_hora_agendada <= agora:
+            messagebox.showwarning("Atenção", "A data/hora deve ser no futuro.")
+            return
+
+        # Calcular diferença em segundos
+        diferenca = (data_hora_agendada - agora).total_seconds()
+
+        # Cancelar agendamento anterior se existir
+        if agendamento_ativo:
+            agendamento_ativo.cancel()
+            parar_keep_alive()
+            fechar_chrome_agendamento()
+
+        # Abrir Chrome e iniciar keep-alive para manter sessão ativa
+        atualizar_log("Abrindo Chrome para manter sessão ativa durante o agendamento...", cor="azul")
+        driver_agendamento = abrir_chrome_agendamento()
+
+        if not driver_agendamento:
+            messagebox.showerror("Erro", "Não foi possível abrir o Chrome. Agendamento cancelado.")
+            return
+
+        # Aguardar um pouco para garantir que a página carregou
+        time.sleep(5)
+
+        # Iniciar keep-alive (refresh a cada 30 minutos)
+        iniciar_keep_alive()
+
+        # Criar novo timer
+        agendamento_ativo = threading.Timer(diferenca, executar_agendamento)
+        agendamento_ativo.start()
+
+        # Iniciar contagem regressiva
+        contagem_regressiva_ativa = True
+        atualizar_contagem_regressiva()
+
+        # Log do agendamento
+        atualizar_log(f"=" * 50, cor="azul")
+        atualizar_log(f"AGENDAMENTO CRIADO COM SUCESSO!", cor="verde")
+        atualizar_log(f"Data/Hora programada: {data_hora_agendada.strftime('%d/%m/%Y às %H:%M')}", cor="azul")
+        atualizar_log(f"Modelo: {modelo}", cor="azul")
+        atualizar_log(f"Excel: {excel}", cor="azul")
+        atualizar_log(f"Linha inicial: {linha}", cor="azul")
+        atualizar_log(f"Tempo até execução: {formatar_tempo_restante(diferenca)}", cor="azul")
+        atualizar_log(f"Keep-alive ativo: Refresh a cada 30 minutos", cor="azul")
+        atualizar_log(f"=" * 50, cor="azul")
+
+        # Desabilitar botões
+        botao_agendar.configure(state="disabled")
+        botao_cancelar_agendamento.configure(state="normal")
+        botao_iniciar.configure(state="disabled")
+        botao_iniciar_chrome.configure(state="disabled")
+
+        messagebox.showinfo("Agendamento", f"Processamento agendado para:\n{data_hora_agendada.strftime('%d/%m/%Y às %H:%M')}\n\nO Chrome foi aberto e fará refresh automático a cada 30 minutos para manter a sessão ativa.\n\nPor favor, faça login se necessário.")
+
+    except ValueError as e:
+        messagebox.showerror("Erro", f"Formato de data/hora inválido.\nUse: DD/MM/AAAA e HH:MM\n\nErro: {str(e)}")
+
+def executar_agendamento():
+    global contagem_regressiva_ativa, agendamento_ativo
+    contagem_regressiva_ativa = False
+    agendamento_ativo = None
+
+    # Parar o keep-alive antes de iniciar o processamento
+    parar_keep_alive()
+
+    # Atualizar log
+    atualizar_log(f"=" * 50, cor="verde")
+    atualizar_log(f"AGENDAMENTO EXECUTANDO!", cor="verde")
+    atualizar_log(f"Horário: {datetime.now().strftime('%d/%m/%Y às %H:%M:%S')}", cor="verde")
+    atualizar_log(f"=" * 50, cor="verde")
+
+    # Resetar botões (precisa ser feito na thread principal)
+    janela.after(0, lambda: botao_agendar.configure(state="normal"))
+    janela.after(0, lambda: botao_cancelar_agendamento.configure(state="disabled"))
+    janela.after(0, lambda: label_contagem.configure(text=""))
+
+    # Iniciar processamento usando o driver existente
+    janela.after(0, iniciar_processamento_agendado)
+
+def iniciar_processamento_agendado():
+    """Inicia o processamento usando o driver já aberto pelo agendamento"""
+    global cancelar, driver_agendamento
+    cancelar = False
+    excel = caminho_excel.get()
+    modelo = modelo_selecionado.get()
+
+    if not excel or not modelo:
+        messagebox.showwarning("Atenção", "Selecione um modelo e um arquivo Excel.")
+        return
+
+    try:
+        linha = int(entrada_linha_inicial.get())
+        if linha < 2:
+            raise ValueError("Linha inicial deve ser >= 2")
+    except ValueError:
+        messagebox.showwarning("Atenção", "Linha inicial deve ser um número inteiro >= 2.")
+        return
+
+    atualizar_log("Iniciando processamento agendado...", cor="azul")
+    botao_iniciar.configure(state="disabled")
+    botao_iniciar_chrome.configure(state="disabled")
+    inicializar_arquivo_log(modelo)
+
+    # Usar o driver existente do agendamento
+    thread = threading.Thread(target=processar_dados_agendado, args=(excel, modelo, linha))
+    thread.start()
+
+def cancelar_agendamento():
+    global agendamento_ativo, contagem_regressiva_ativa, data_hora_agendada
+
+    if agendamento_ativo:
+        agendamento_ativo.cancel()
+        agendamento_ativo = None
+
+    # Parar keep-alive e fechar Chrome
+    parar_keep_alive()
+    fechar_chrome_agendamento()
+
+    contagem_regressiva_ativa = False
+    data_hora_agendada = None
+
+    # Resetar interface
+    botao_agendar.configure(state="normal")
+    botao_cancelar_agendamento.configure(state="disabled")
+    botao_iniciar.configure(state="normal")
+    botao_iniciar_chrome.configure(state="normal")
+    label_contagem.configure(text="")
+
+    atualizar_log("Agendamento cancelado pelo usuário.", cor="vermelho")
+    messagebox.showinfo("Agendamento", "Agendamento cancelado com sucesso.")
+
+def atualizar_contagem_regressiva():
+    global contagem_regressiva_ativa
+
+    if not contagem_regressiva_ativa or not data_hora_agendada:
+        return
+
+    agora = datetime.now()
+    diferenca = (data_hora_agendada - agora).total_seconds()
+
+    if diferenca <= 0:
+        label_contagem.configure(text="Iniciando...")
+        return
+
+    # Formatar tempo restante
+    texto = formatar_tempo_restante(diferenca)
+    label_contagem.configure(text=f"Tempo restante: {texto}")
+
+    # Atualizar a cada segundo
+    janela.after(1000, atualizar_contagem_regressiva)
+
+def formatar_tempo_restante(segundos):
+    dias = int(segundos // 86400)
+    horas = int((segundos % 86400) // 3600)
+    minutos = int((segundos % 3600) // 60)
+    segs = int(segundos % 60)
+
+    partes = []
+    if dias > 0:
+        partes.append(f"{dias}d")
+    if horas > 0:
+        partes.append(f"{horas}h")
+    if minutos > 0:
+        partes.append(f"{minutos}m")
+    partes.append(f"{segs}s")
+
+    return " ".join(partes)
+
+# Funções de Keep-Alive
+def iniciar_keep_alive():
+    """Inicia o sistema de keep-alive que faz refresh periódico no Chrome"""
+    global keep_alive_ativo
+    keep_alive_ativo = True
+    atualizar_log("Keep-alive iniciado. Refresh a cada 30 minutos.", cor="azul")
+    # Agendar primeiro refresh em 30 minutos (não fazer refresh imediato pois o Chrome acabou de abrir)
+    janela.after(KEEP_ALIVE_INTERVALO, executar_keep_alive)
+
+def executar_keep_alive():
+    """Executa o refresh periódico para manter a sessão ativa"""
+    global keep_alive_ativo, driver_agendamento
+
+    if not keep_alive_ativo or not driver_agendamento:
+        return
+
+    def fazer_refresh():
+        global keep_alive_ativo, driver_agendamento
+        try:
+            # Verificar se o driver ainda está ativo
+            driver_agendamento.current_url
+
+            # Fazer refresh na página
+            driver_agendamento.refresh()
+            atualizar_log(f"[Keep-alive] Refresh executado às {datetime.now().strftime('%H:%M:%S')}", cor="azul")
+
+            # Agendar próximo refresh (30 minutos) - feito na thread principal
+            if keep_alive_ativo:
+                janela.after(KEEP_ALIVE_INTERVALO, executar_keep_alive)
+
+        except Exception as e:
+            atualizar_log(f"[Keep-alive] Erro no refresh: {str(e)}", cor="vermelho")
+            # Tentar reconectar
+            try:
+                reconectar_chrome_agendamento()
+                if keep_alive_ativo:
+                    janela.after(KEEP_ALIVE_INTERVALO, executar_keep_alive)
+            except:
+                atualizar_log("[Keep-alive] Falha ao reconectar. Sessão pode ter expirado.", cor="vermelho")
+
+    # Executar em thread separada para não travar a UI
+    thread = threading.Thread(target=fazer_refresh, daemon=True)
+    thread.start()
+
+def parar_keep_alive():
+    """Para o sistema de keep-alive"""
+    global keep_alive_ativo
+    keep_alive_ativo = False
+    atualizar_log("Keep-alive parado.", cor="azul")
+
+def abrir_chrome_agendamento():
+    """Abre o Chrome para o agendamento e retorna o driver"""
+    global driver_agendamento
+
+    url = "https://app.gestta.com.br/attendance/#/chat/contact-list"
+
+    # Não encerra processos existentes para não interferir com outra instância
+    user_data_dir = r"C:\PerfisChrome\automacao"
+    perfil = obter_perfil_chrome()
+    profile_dir = os.path.join(user_data_dir, perfil)
+
+    if not os.path.exists(profile_dir):
+        atualizar_log(f"Perfil '{perfil}' não encontrado. Será criado automaticamente.", cor="azul")
+
+    atualizar_log(f"Abrindo Chrome para agendamento (Perfil: {perfil})...", cor="azul")
+
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
+    chrome_options.add_argument(f"--profile-directory={perfil}")
+    chrome_options.add_argument("--start-maximized")
+    chrome_options.add_argument("--disable-translate")
+    chrome_options.add_argument("--lang=pt-BR")
+    chrome_options.add_argument("--enable-javascript")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+
+    service = Service(ChromeDriverManager().install())
+    try:
+        driver_agendamento = webdriver.Chrome(service=service, options=chrome_options)
+        driver_agendamento.set_page_load_timeout(180)
+        driver_agendamento.get(url)
+        atualizar_log(f"Chrome aberto no Messenger.", cor="verde")
+        atualizar_log("Por favor, faça login se necessário.", cor="azul")
+        return driver_agendamento
+    except Exception as e:
+        atualizar_log(f"Erro ao abrir Chrome: {str(e)}", cor="vermelho")
+        driver_agendamento = None
+        return None
+
+def reconectar_chrome_agendamento():
+    """Tenta reconectar o Chrome caso a sessão tenha caído"""
+    global driver_agendamento
+
+    atualizar_log("Tentando reconectar Chrome...", cor="azul")
+
+    try:
+        if driver_agendamento:
+            driver_agendamento.quit()
+    except:
+        pass
+
+    driver_agendamento = abrir_chrome_agendamento()
+    if driver_agendamento:
+        atualizar_log("Chrome reconectado com sucesso!", cor="verde")
+    else:
+        atualizar_log("Falha ao reconectar Chrome.", cor="vermelho")
+
+def fechar_chrome_agendamento():
+    """Fecha o Chrome do agendamento"""
+    global driver_agendamento, keep_alive_ativo
+
+    keep_alive_ativo = False
+
+    if driver_agendamento:
+        try:
+            driver_agendamento.quit()
+            atualizar_log("Chrome do agendamento fechado.", cor="azul")
+        except:
+            pass
+        driver_agendamento = None
+
 # Interface Principal
 def main():
     global janela, caminho_excel, modelo_selecionado, mensagem_selecionada, botao_iniciar, botao_fechar, log_text, progresso, progresso_texto, entrada_linha_inicial, botao_iniciar_chrome, anexo_habilitado, caminho_anexo
+    global entrada_data, entrada_hora, botao_agendar, botao_cancelar_agendamento, label_contagem
+    global perfil_selecionado
 
     janela = ctk.CTk()
     janela.title("AutoMessenger ONE")
-    janela.geometry("700x600")
+    janela.geometry("750x680")
     janela.resizable(True, True)
 
     # # Set the window icon (use .ico for best compatibility on Windows)
@@ -1153,10 +1715,17 @@ def main():
     
     botao_editor = ctk.CTkButton(frame_mensagem, text="Adicionar/Editar Mensagem", command=abrir_editor_mensagem)
     botao_editor.grid(row=0, column=2, padx=5, pady=5)
-    
+
+    # Seleção de perfil do Chrome
+    label_perfil = ctk.CTkLabel(frame_mensagem, text="Perfil:")
+    label_perfil.grid(row=0, column=3, pady=5, padx=(10, 2), sticky="e")
+    perfil_selecionado = ctk.StringVar(value="1")
+    combo_perfil = ctk.CTkComboBox(frame_mensagem, values=["1", "2"], variable=perfil_selecionado, width=50)
+    combo_perfil.grid(row=0, column=4, padx=2, pady=5)
+
     # Novo botão para iniciar Chrome
-    botao_iniciar_chrome = ctk.CTkButton(frame_mensagem, text="Iniciar Chrome de Automação", command=iniciar_chrome_automacao)
-    botao_iniciar_chrome.grid(row=0, column=3, padx=5, pady=5)
+    botao_iniciar_chrome = ctk.CTkButton(frame_mensagem, text="Iniciar Chrome", command=iniciar_chrome_automacao, width=100)
+    botao_iniciar_chrome.grid(row=0, column=5, padx=5, pady=5)
 
     # Frame para anexo opcional
     frame_anexo = ctk.CTkFrame(janela)
@@ -1173,8 +1742,10 @@ def main():
 
     def selecionar_anexo():
         arquivo = filedialog.askopenfilename(filetypes=[
-            ("Imagens", "*.jpg *.jpeg *.png *.gif *.bmp"),
+            ("Vídeos", "*.mp4 *.avi *.mov *.mkv *.wmv *.webm"),
+            ("Imagens", "*.jpg *.jpeg *.png *.gif *.bmp *.webp"),
             ("PDF", "*.pdf"),
+            ("Documentos", "*.doc *.docx *.xls *.xlsx *.ppt *.pptx"),
             ("Todos os arquivos", "*.*")
         ])
         if arquivo:
@@ -1192,6 +1763,33 @@ def main():
             entrada_anexo.configure(state="disabled")
             botao_anexo.configure(state="disabled")
             caminho_anexo.set("")
+
+    # Frame para agendamento
+    frame_agendamento = ctk.CTkFrame(janela)
+    frame_agendamento.pack(fill="x", padx=10, pady=5)
+
+    label_agendar = ctk.CTkLabel(frame_agendamento, text="Agendar envio:")
+    label_agendar.grid(row=0, column=0, pady=5, padx=5, sticky="w")
+
+    label_data = ctk.CTkLabel(frame_agendamento, text="Data:")
+    label_data.grid(row=0, column=1, pady=5, padx=(10, 2), sticky="e")
+    entrada_data = ctk.CTkEntry(frame_agendamento, width=100, placeholder_text="DD/MM/AAAA")
+    entrada_data.grid(row=0, column=2, padx=2, pady=5)
+
+    label_hora = ctk.CTkLabel(frame_agendamento, text="Hora:")
+    label_hora.grid(row=0, column=3, pady=5, padx=(10, 2), sticky="e")
+    entrada_hora = ctk.CTkEntry(frame_agendamento, width=60, placeholder_text="HH:MM")
+    entrada_hora.grid(row=0, column=4, padx=2, pady=5)
+
+    botao_agendar = ctk.CTkButton(frame_agendamento, text="Agendar", command=agendar_processamento, fg_color="#6f42c1", hover_color="#5a32a3", width=80)
+    botao_agendar.grid(row=0, column=5, padx=5, pady=5)
+
+    botao_cancelar_agendamento = ctk.CTkButton(frame_agendamento, text="Cancelar Agendamento", command=cancelar_agendamento, fg_color="#fd7e14", hover_color="#e06b0a", width=140, state="disabled")
+    botao_cancelar_agendamento.grid(row=0, column=6, padx=5, pady=5)
+
+    # Label para contagem regressiva
+    label_contagem = ctk.CTkLabel(frame_agendamento, text="", text_color="#6f42c1", font=("Roboto", 12, "bold"))
+    label_contagem.grid(row=1, column=0, columnspan=7, pady=(0, 5), sticky="w", padx=5)
 
     frame_botoes = ctk.CTkFrame(janela)
     frame_botoes.pack(fill="x", padx=10, pady=5)
