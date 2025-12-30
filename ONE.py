@@ -149,7 +149,7 @@ def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
                         botao_enviar_arquivo.click()
                         atualizar_log("Botão de enviar arquivo clicado com sucesso.")
                         atualizar_log("Aguardando upload do arquivo (pode demorar para vídeos)...", cor="azul")
-                        time.sleep(10)  # Delay maior para vídeos carregarem
+                        time.sleep(15)  # Delay maior para vídeos carregarem
                     else:
                         atualizar_log("Nenhum arquivo válido para anexar.", cor="vermelho")
                         return False
@@ -281,26 +281,31 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, mod
 
 # Funções de Navegação e Automação (reutilizadas do main.py e prorcontrato.py)
 def obter_perfil_chrome():
-    """Retorna o nome do perfil baseado na seleção do usuário"""
-    perfil = perfil_selecionado.get() if perfil_selecionado else "1"
-    return f"Profile {perfil}"
+    """Retorna o número do perfil baseado na seleção do usuário"""
+    return perfil_selecionado.get() if perfil_selecionado else "1"
+
+def obter_user_data_dir():
+    """Retorna o diretório de dados do Chrome baseado no perfil selecionado.
+    Cada perfil usa um diretório SEPARADO para permitir execução simultânea."""
+    perfil = obter_perfil_chrome()
+    return rf"C:\PerfisChrome\automacao_perfil{perfil}"
 
 def abrir_chrome_com_url(url):
+    # Encerra apenas o Chrome do perfil atual (não interfere no outro perfil)
     encerrar_processos_chrome()
-    user_data_dir = r"C:\PerfisChrome\automacao"
+    user_data_dir = obter_user_data_dir()
     perfil = obter_perfil_chrome()
-    profile_dir = os.path.join(user_data_dir, perfil)
 
-    # Verificar se o diretório do perfil existe
-    if not os.path.exists(profile_dir):
-        atualizar_log(f"Perfil '{perfil}' não encontrado em {user_data_dir}.", cor="vermelho")
-        atualizar_log("Um novo perfil será criado. Por favor, faça login na página aberta para continuar.", cor="azul")
+    # Criar diretório se não existir
+    if not os.path.exists(user_data_dir):
+        os.makedirs(user_data_dir, exist_ok=True)
+        atualizar_log(f"Diretório do perfil {perfil} criado.", cor="azul")
+        atualizar_log("Por favor, faça login na página aberta para continuar.", cor="azul")
 
-    atualizar_log(f"Usando perfil: {perfil}", cor="azul")
+    atualizar_log(f"Usando perfil: {perfil} ({user_data_dir})", cor="azul")
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
-    chrome_options.add_argument(f"--profile-directory={perfil}")
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--disable-translate")
     chrome_options.add_argument("--lang=pt-BR")
@@ -322,18 +327,22 @@ def abrir_chrome_com_url(url):
 def encerrar_processos_chrome():
     """Encerra apenas os processos Chrome do perfil selecionado"""
     perfil = obter_perfil_chrome()
+    encerrou_algum = False
     for proc in psutil.process_iter(['name', 'cmdline']):
         if proc.info['name'] == 'chrome.exe':
             try:
                 cmdline = proc.info['cmdline'] or []
                 cmdline_str = ' '.join(cmdline)
-                # Só encerra o Chrome do perfil selecionado
-                if '--user-data-dir=C:\\PerfisChrome\\automacao' in cmdline_str and f'--profile-directory={perfil}' in cmdline_str:
+                # Encerra apenas o Chrome do diretório do perfil selecionado
+                # Verifica com barras normais e invertidas
+                if f'automacao_perfil{perfil}' in cmdline_str:
                     proc.terminate()
-                    atualizar_log(f"Processo Chrome ({perfil}) encerrado (PID: {proc.pid}).")
+                    atualizar_log(f"Processo Chrome (Perfil {perfil}) encerrado (PID: {proc.pid}).")
+                    encerrou_algum = True
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
-    time.sleep(2)
+    if encerrou_algum:
+        time.sleep(2)
 
 def focar_barra_endereco_e_navegar(driver, termo_busca):
     try:
@@ -1502,19 +1511,21 @@ def abrir_chrome_agendamento():
 
     url = "https://app.gestta.com.br/attendance/#/chat/contact-list"
 
-    # Não encerra processos existentes para não interferir com outra instância
-    user_data_dir = r"C:\PerfisChrome\automacao"
-    perfil = obter_perfil_chrome()
-    profile_dir = os.path.join(user_data_dir, perfil)
+    # Encerra apenas o Chrome do perfil atual antes de abrir
+    encerrar_processos_chrome()
 
-    if not os.path.exists(profile_dir):
-        atualizar_log(f"Perfil '{perfil}' não encontrado. Será criado automaticamente.", cor="azul")
+    user_data_dir = obter_user_data_dir()
+    perfil = obter_perfil_chrome()
+
+    # Criar diretório se não existir
+    if not os.path.exists(user_data_dir):
+        os.makedirs(user_data_dir, exist_ok=True)
+        atualizar_log(f"Diretório do perfil {perfil} criado.", cor="azul")
 
     atualizar_log(f"Abrindo Chrome para agendamento (Perfil: {perfil})...", cor="azul")
 
     chrome_options = webdriver.ChromeOptions()
     chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
-    chrome_options.add_argument(f"--profile-directory={perfil}")
     chrome_options.add_argument("--start-maximized")
     chrome_options.add_argument("--disable-translate")
     chrome_options.add_argument("--lang=pt-BR")
