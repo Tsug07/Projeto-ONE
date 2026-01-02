@@ -201,49 +201,68 @@ def encontrar_e_clicar_barra_contatos(driver, contato, grupo):
             if focar_barra_endereco_e_navegar(driver, grupo):
                 atualizar_log("Navegação aba grupo.")
                 return processar_resultados_busca(driver)
+            else:
+                raise TimeoutException("Falha ao navegar na aba grupo")
         elif contato.upper() != "NONE":
             focar_pagina(driver, aba="contato")
             if focar_barra_endereco_e_navegar(driver, contato):
                 atualizar_log("Navegação aba contato.")
                 return processar_resultados_busca(driver)
-        atualizar_log("Falha na navegação ou busca.", cor="vermelho")
+            else:
+                raise TimeoutException("Falha ao navegar na aba contato")
+        atualizar_log("Falha na navegação ou busca: contato e grupo são 'NONE'.", cor="vermelho")
         return False
+    except TimeoutException as e:
+        atualizar_log(f"Timeout ao tentar localizar na aba inicial: {str(e)}", cor="vermelho")
+        raise  # Relança a exceção para ser tratada em enviar_mensagem
     except Exception as e:
         atualizar_log(f"Erro ao interagir com a página: {str(e)}", cor="vermelho")
         return False
 
 def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, modelo=None, caminhos=None):
-    if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
-        time.sleep(6)
-        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
-            atualizar_log(f"\nAviso enviado para {contato or grupo}, {codigo} - {identificador}.\n", cor="verde")
-            focar_pagina_geral(driver)
-            return True
+    try:
+        if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
+            time.sleep(6)
+            if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
+                atualizar_log(f"\nAviso enviado para {contato or grupo}, {codigo} - {identificador}.\n", cor="verde")
+                focar_pagina_geral(driver)
+                return True
         else:
-            atualizar_log(f"Falha ao enviar mensagem para {contato or grupo}. Tentando aba alternativa.", cor="vermelho")
-            # Tentar aba alternativa
-            if grupo.upper() != "NONE" and contato.upper() != "NONE":
+            raise TimeoutException("Falha inicial na busca de contato ou grupo")
+    except TimeoutException:
+        atualizar_log(f"Falha ao localizar {contato or grupo}. Tentando aba alternativa.", cor="vermelho")
+        # Tentar aba alternativa
+        try:
+            if grupo.upper() != "NONE":
+                atualizar_log("Tentando aba Contatos.", cor="azul")
                 focar_pagina(driver, aba="contato")
-                if focar_barra_endereco_e_navegar(driver, contato):
-                    if processar_resultados_busca(driver):
-                        atualizar_log("Contato encontrado na aba Contatos.", cor="azul")
-                        time.sleep(6)
-                        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
-                            atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
-                            focar_pagina_geral(driver)
-                            return True
-            elif contato.upper() != "NONE" and grupo.upper() != "NONE":
+                # if focar_barra_endereco_e_navegar(driver, contato):
+                if processar_resultados_busca(driver):
+                    atualizar_log("Contato encontrado na aba Contatos.", cor="azul")
+                    time.sleep(6)
+                    if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
+                        atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
+                        focar_pagina_geral(driver)
+                        return True
+            elif contato.upper() != "NONE":
+                atualizar_log("Tentando aba Grupos.", cor="azul")
                 focar_pagina(driver, aba="grupo")
-                if focar_barra_endereco_e_navegar(driver, grupo):
-                    if processar_resultados_busca(driver):
-                        atualizar_log("Grupo encontrado na aba Grupos.", cor="azul")
-                        time.sleep(6)
-                        if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
-                            atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
-                            focar_pagina_geral(driver)
-                            return True
+                # if focar_barra_endereco_e_navegar(driver, grupo):
+                if processar_resultados_busca(driver):
+                    atualizar_log("Grupo encontrado na aba Grupos.", cor="azul")
+                    time.sleep(6)
+                    if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
+                        atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
+                        focar_pagina_geral(driver)
+                        return True
             atualizar_log(f"Falha ao enviar mensagem para {contato or grupo} em ambas as abas.", cor="vermelho")
-    return False
+            return False
+        except Exception as e:
+            atualizar_log(f"Erro ao tentar aba alternativa: {str(e)}", cor="vermelho")
+            return False
+    except Exception as e:
+        atualizar_log(f"Erro geral ao enviar mensagem: {str(e)}", cor="vermelho")
+        return False
 
 # Funções de Navegação e Automação (reutilizadas do main.py e prorcontrato.py)
 def abrir_chrome_com_url(url):
