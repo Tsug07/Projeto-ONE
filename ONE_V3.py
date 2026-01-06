@@ -30,6 +30,24 @@ Supports multiple models with customizable Excel structures and messages.
 ctk.set_appearance_mode("Dark")
 ctk.set_default_color_theme("dark-blue")
 
+# Variável global para o tema atual
+tema_atual = "Dark"
+
+def alternar_tema():
+    """Alterna entre tema Dark e Light"""
+    global tema_atual
+    if tema_atual == "Dark":
+        tema_atual = "Light"
+        ctk.set_appearance_mode("Light")
+    else:
+        tema_atual = "Dark"
+        ctk.set_appearance_mode("Dark")
+
+    # Atualizar texto do botão se existir
+    if 'botao_tema' in globals() and botao_tema is not None:
+        icone = "☀" if tema_atual == "Dark" else "🌙"
+        botao_tema.configure(text=icone)
+
 # Variáveis globais
 cancelar = False
 log_file_path = None
@@ -1582,7 +1600,7 @@ def fechar_chrome_agendamento():
 def main():
     global janela, caminho_excel, modelo_selecionado, mensagem_selecionada, botao_iniciar, botao_fechar, log_text, progresso, progresso_texto, entrada_linha_inicial, botao_iniciar_chrome, anexo_habilitado, caminho_anexo
     global entrada_data, entrada_hora, botao_agendar, botao_cancelar_agendamento, label_contagem
-    global perfil_selecionado
+    global perfil_selecionado, botao_tema
 
     # Constantes de estilo compacto
     H_INPUT = 28
@@ -1639,8 +1657,22 @@ def main():
     titulo = ctk.CTkLabel(frame_header, text="AutoMessenger ONE", font=FONT_HEADER)
     titulo.pack(side="left")
 
-    label_versao = ctk.CTkLabel(frame_header, text="v2.0 | Hugo L. Almeida", text_color="gray", font=("Segoe UI", 9))
-    label_versao.pack(side="right")
+    label_versao = ctk.CTkLabel(frame_header, text="v3.0 | Hugo L. Almeida", text_color="gray", font=("Segoe UI", 9))
+    label_versao.pack(side="right", padx=(8, 0))
+
+    # Botão de alternar tema (ao lado do autor)
+    botao_tema = ctk.CTkButton(
+        frame_header,
+        text="☀",
+        command=alternar_tema,
+        width=28,
+        height=24,
+        font=("Segoe UI", 12),
+        fg_color="transparent",
+        hover_color=("gray80", "gray30"),
+        text_color=("gray20", "gray80")
+    )
+    botao_tema.pack(side="right")
 
     # ========== CONTAINER PRINCIPAL (2 COLUNAS) ==========
     frame_principal = ctk.CTkFrame(janela, fg_color="transparent")
@@ -1702,49 +1734,85 @@ def main():
     def abrir_editor_mensagem():
         janela_editor = ctk.CTkToplevel(janela)
         janela_editor.title("Editor de Mensagens")
-        janela_editor.geometry("550x380")
+        janela_editor.geometry("550x420")
 
         frame_editor = ctk.CTkFrame(janela_editor, fg_color="transparent")
         frame_editor.pack(fill="both", expand=True, padx=16, pady=16)
 
-        ctk.CTkLabel(frame_editor, text="Nome:", font=FONT_LABEL).pack(anchor="w")
-        entrada_nome = ctk.CTkEntry(frame_editor, height=H_INPUT, font=FONT_LABEL)
-        entrada_nome.pack(fill="x", pady=(2, 10))
+        # Dropdown para selecionar mensagem
+        ctk.CTkLabel(frame_editor, text="Selecionar Mensagem:", font=FONT_LABEL).pack(anchor="w")
+        mensagens_editor = carregar_mensagens()
+        opcoes_dropdown = ["Nova Mensagem"] + list(mensagens_editor.keys())
+        selecao_editor = ctk.StringVar(value="Nova Mensagem")
+        dropdown_mensagens = ctk.CTkComboBox(frame_editor, values=opcoes_dropdown, variable=selecao_editor, width=300, height=H_INPUT, font=FONT_LABEL, state="readonly")
+        dropdown_mensagens.pack(fill="x", pady=(2, 10))
+
+        # Frame para nome (visível apenas para nova mensagem)
+        frame_nome = ctk.CTkFrame(frame_editor, fg_color="transparent")
+        frame_nome.pack(fill="x", pady=(0, 10))
+        ctk.CTkLabel(frame_nome, text="Título:", font=FONT_LABEL).pack(anchor="w")
+        entrada_nome = ctk.CTkEntry(frame_nome, height=H_INPUT, font=FONT_LABEL, placeholder_text="Digite o título da nova mensagem...")
+        entrada_nome.pack(fill="x", pady=(2, 0))
 
         ctk.CTkLabel(frame_editor, text="Texto:", font=FONT_LABEL).pack(anchor="w")
         texto_mensagem = ctk.CTkTextbox(frame_editor, wrap="word", height=180, font=FONT_LABEL)
         texto_mensagem.pack(fill="both", expand=True, pady=(2, 12))
 
-        def salvar_mensagem():
-            nome = entrada_nome.get().strip()
-            texto = texto_mensagem.get("1.0", "end").strip()
-            if nome and texto:
-                mensagens = carregar_mensagens()
-                if nome in mensagens and not messagebox.askyesno("Confirmação", f"'{nome}' já existe. Sobrescrever?"):
-                    return
-                mensagens[nome] = texto
-                salvar_mensagens(mensagens)
-                combo_mensagem.configure(values=list(mensagens.keys()))
-                atualizar_log(f"Mensagem '{nome}' salva!", cor="verde")
-                janela_editor.destroy()
+        def ao_selecionar_mensagem(escolha):
+            texto_mensagem.delete("1.0", "end")
+            entrada_nome.delete(0, "end")
+            if escolha == "Nova Mensagem":
+                frame_nome.pack(fill="x", pady=(0, 10), after=dropdown_mensagens)
+                entrada_nome.configure(state="normal", placeholder_text="Digite o título da nova mensagem...")
             else:
-                messagebox.showwarning("Atenção", "Nome e texto são obrigatórios.")
+                frame_nome.pack_forget()
+                mensagens_atual = carregar_mensagens()
+                if escolha in mensagens_atual:
+                    texto_mensagem.insert("1.0", mensagens_atual[escolha])
+
+        dropdown_mensagens.configure(command=ao_selecionar_mensagem)
+
+        def salvar_mensagem():
+            escolha = selecao_editor.get()
+            texto = texto_mensagem.get("1.0", "end").strip()
+
+            if escolha == "Nova Mensagem":
+                nome = entrada_nome.get().strip()
+                if not nome:
+                    messagebox.showwarning("Atenção", "Digite o título da nova mensagem.")
+                    return
+            else:
+                nome = escolha
+
+            if not texto:
+                messagebox.showwarning("Atenção", "O texto da mensagem é obrigatório.")
+                return
+
+            mensagens_atual = carregar_mensagens()
+            if escolha == "Nova Mensagem" and nome in mensagens_atual:
+                if not messagebox.askyesno("Confirmação", f"'{nome}' já existe. Sobrescrever?"):
+                    return
+
+            mensagens_atual[nome] = texto
+            salvar_mensagens(mensagens_atual)
+            combo_mensagem.configure(values=list(mensagens_atual.keys()))
+            atualizar_log(f"Mensagem '{nome}' salva!", cor="verde")
+            janela_editor.destroy()
 
         def remover_mensagem():
-            nome = entrada_nome.get().strip()
-            if nome:
-                mensagens = carregar_mensagens()
-                if nome in mensagens and messagebox.askyesno("Confirmação", f"Remover '{nome}'?"):
-                    del mensagens[nome]
-                    salvar_mensagens(mensagens)
-                    combo_mensagem.configure(values=list(mensagens.keys()))
-                    mensagem_selecionada.set("")
-                    atualizar_log(f"Mensagem '{nome}' removida!", cor="verde")
-                    janela_editor.destroy()
-                elif nome not in mensagens:
-                    messagebox.showwarning("Atenção", "Mensagem não encontrada.")
-            else:
-                messagebox.showwarning("Atenção", "Digite o nome da mensagem.")
+            escolha = selecao_editor.get()
+            if escolha == "Nova Mensagem":
+                messagebox.showwarning("Atenção", "Selecione uma mensagem existente para remover.")
+                return
+
+            mensagens_atual = carregar_mensagens()
+            if escolha in mensagens_atual and messagebox.askyesno("Confirmação", f"Remover '{escolha}'?"):
+                del mensagens_atual[escolha]
+                salvar_mensagens(mensagens_atual)
+                combo_mensagem.configure(values=list(mensagens_atual.keys()))
+                mensagem_selecionada.set(list(mensagens_atual.keys())[0] if mensagens_atual else "")
+                atualizar_log(f"Mensagem '{escolha}' removida!", cor="verde")
+                janela_editor.destroy()
 
         frame_btns_editor = ctk.CTkFrame(frame_editor, fg_color="transparent")
         frame_btns_editor.pack(fill="x")
