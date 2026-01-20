@@ -1,124 +1,226 @@
+# AutoMessenger ONE
 
-# 📬 AutoMessenger ONE
+<div align="center">
 
-**AutoMessenger ONE** é uma aplicação desktop com interface gráfica desenvolvida em Python, projetada para **automatizar o envio de mensagens e anexos** para **contatos ou grupos no Onvio Messenger**, com base em dados estruturados em planilhas Excel. Ideal para departamentos de TI, RH, Financeiro ou Atendimento que buscam eficiência e padronização na comunicação via Onvio.
+![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Selenium](https://img.shields.io/badge/Selenium-Automation-43B02A?style=for-the-badge&logo=selenium&logoColor=white)
+![CustomTkinter](https://img.shields.io/badge/CustomTkinter-GUI-blue?style=for-the-badge)
+![License](https://img.shields.io/badge/License-Internal_Use-red?style=for-the-badge)
+![Status](https://img.shields.io/badge/Status-Active-success?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-3.0-orange?style=for-the-badge)
 
----
+<br>
 
-## 🧠 Funcionalidades
+**Solução de automação corporativa para envio de mensagens e anexos via Onvio Messenger**
 
-✅ Interface moderna e interativa com `customtkinter`  
-✅ Automação de envio de mensagens e arquivos via navegador (Chrome + Selenium)  
-✅ Suporte a múltiplos modelos de mensagens com estruturas específicas de Excel  
-✅ Validação de dados, logs detalhados e barra de progresso visual  
-✅ Sistema de mensagens customizáveis com edição via interface  
-✅ Suporte a envio em massa com controle e personalização
+[Funcionalidades](#-funcionalidades) •
+[Instalação](#%EF%B8%8F-instalação) •
+[Uso](#-uso) •
+[Modelos](#-modelos-suportados) •
+[Configuração](#-configuração)
 
----
-
-## 🧰 Tecnologias Utilizadas
-
-- [Python 3.10+](https://www.python.org/)
-- [Selenium](https://selenium.dev/) – Automação de navegador
-- [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) – Interface gráfica moderna
-- [OpenPyXL](https://openpyxl.readthedocs.io/) – Leitura e validação de arquivos Excel
-- [Pillow (PIL)](https://pillow.readthedocs.io/) – Manipulação de imagens
-- [psutil](https://pypi.org/project/psutil/) – Gerenciamento de processos
+</div>
 
 ---
 
-## 📁 Modelos Suportados
+## Sobre o Projeto
 
-| Modelo             | Campos Esperados no Excel                                                        | Tipo de Mensagem                          |
-|--------------------|----------------------------------------------------------------------------------|-------------------------------------------|
-| `ONE`              | Código, Empresa, Contato Onvio, Grupo Onvio, Caminho                             | Envio com anexos personalizados           |
-| `ALL`              | Código, Empresa, Contato Onvio, Grupo Onvio                                      | Mensagem padrão                           |
-| `ProrContrato`     | Código, Contato Onvio, Grupo Onvio, Nome, Vencimento                             | Prorrogação de contrato (descontinuado)   |
-| `Cobranca`         | Código, Empresa, Contato Onvio, Grupo Onvio, Valor, Vencimento, Carta de Aviso   | Aviso de cobrança com diferentes versões  |
-| `ComuniCertificado`| Código, Empresa, Contato Onvio, Grupo Onvio, CNPJ, Vencimento, Carta de Aviso    | Certificado digital vencendo              |
+**AutoMessenger ONE** é uma aplicação desktop desenvolvida em Python com interface gráfica moderna, projetada para automatizar o envio de mensagens e anexos para contatos ou grupos no **Onvio Messenger**. A ferramenta utiliza dados estruturados em planilhas Excel, sendo ideal para departamentos de TI, RH, Financeiro ou Atendimento que buscam eficiência e padronização na comunicação corporativa.
 
 ---
 
-## ⚙️ Instalação
+## Funcionalidades
 
-### 1. Clone o repositório (opcional)
+| Recurso | Descrição |
+|---------|-----------|
+| **Interface Moderna** | GUI desenvolvida com CustomTkinter, suporte a tema Dark/Light |
+| **Automação Robusta** | Integração com Chrome via Selenium WebDriver |
+| **Múltiplos Modelos** | Suporte a diferentes estruturas de mensagens e Excel |
+| **Agendamento** | Envio programado com contagem regressiva visual |
+| **Validação de Dados** | Verificação automática de planilhas antes do envio |
+| **Logs Detalhados** | Sistema completo de logging para auditoria |
+| **Editor de Mensagens** | Personalização de templates diretamente na interface |
+| **Envio de Anexos** | Suporte a múltiplos arquivos por mensagem |
+| **Keep-Alive** | Manutenção automática de sessão do navegador |
+| **Multi-Perfil** | Suporte a múltiplos perfis do Chrome |
+
+---
+
+## Tecnologias Utilizadas
+
+<div align="center">
+
+| Tecnologia | Versão | Propósito |
+|------------|--------|-----------|
+| [Python](https://www.python.org/) | 3.10+ | Linguagem principal |
+| [Selenium](https://selenium.dev/) | Latest | Automação de navegador |
+| [CustomTkinter](https://github.com/TomSchimansky/CustomTkinter) | Latest | Interface gráfica |
+| [OpenPyXL](https://openpyxl.readthedocs.io/) | Latest | Manipulação de Excel |
+| [Pillow](https://pillow.readthedocs.io/) | Latest | Processamento de imagens |
+| [psutil](https://pypi.org/project/psutil/) | Latest | Gerenciamento de processos |
+| [webdriver-manager](https://pypi.org/project/webdriver-manager/) | Latest | Gerenciamento do ChromeDriver |
+
+</div>
+
+---
+
+## Modelos Suportados
+
+| Modelo | Campos do Excel | Caso de Uso |
+|--------|-----------------|-------------|
+| `ONE` | Código, Empresa, Contato Onvio, Grupo Onvio, Caminho | Envio com anexos personalizados |
+| `ALL` | Codigo, Empresa, Contato Onvio, Grupo Onvio | Mensagem padrão em massa |
+| `ALL_info` | Codigo, Empresa, Contato Onvio, Grupo Onvio, Competencia | Mensagem com competência |
+| `Cobranca` | Código, Empresa, Contato Onvio, Grupo Onvio, Valor, Vencimento, Carta de Aviso | Avisos de cobrança |
+| `ComuniCertificado` | Codigo, Empresa, Contato Onvio, Grupo Onvio, CNPJ, Vencimento, Carta de Aviso | Certificado digital |
+
+---
+
+## Instalação
+
+### Pré-requisitos
+
+- Python 3.10 ou superior
+- Google Chrome instalado
+- Acesso ao Onvio Messenger
+
+### Passo a Passo
+
 ```bash
+# 1. Clone o repositório
 git clone https://github.com/seuusuario/AutoMessenger-ONE.git
 cd AutoMessenger-ONE
-```
 
-### 2. Instale as dependências
+# 2. Crie um ambiente virtual (recomendado)
+python -m venv venv
+venv\Scripts\activate  # Windows
+# source venv/bin/activate  # Linux/Mac
 
-Instale com:
-
-```bash
+# 3. Instale as dependências
 pip install -r requirements.txt
 ```
 
 ---
 
-## ▶️ Executando o Script
+## Uso
+
+### Iniciando a Aplicação
 
 ```bash
-python ONE.py
+python ONE_V3.py
 ```
 
-Certifique-se de ter o Google Chrome instalado e que o perfil `C:\PerfisChrome\automacao\Profile 1` exista (ou será criado automaticamente na primeira execução).
+### Fluxo de Trabalho
+
+```
+1. Iniciar Chrome de Automação → Login no Onvio Messenger
+         ↓
+2. Selecionar Modelo → Escolher tipo de mensagem
+         ↓
+3. Carregar Planilha Excel → Validação automática
+         ↓
+4. Configurar Opções → Anexos, agendamento (opcional)
+         ↓
+5. Processar Envio → Monitorar progresso via logs
+```
+
+### Dicas Importantes
+
+> **Primeiro uso:** Execute o botão "Iniciar Chrome de Automação" e faça login no Onvio Messenger antes de processar.
+
+> **Validação:** Sempre valide a planilha Excel antes do envio em massa.
+
+> **Anexos (Modelo ONE):** Os arquivos devem estar em `Documentos\Relatorios`.
 
 ---
 
-## 📂 Estrutura de Arquivos Esperada
+## Configuração
+
+### Estrutura do Projeto
 
 ```
 AutoMessenger-ONE/
-├── ONE.py
-├── mensagens.json
-├── logoOne.ico
-├── logoOne.png
-├── requirements.txt
-├── README.md
-└── AutoMessengerONE_Logs/   ← Gerado automaticamente
+├── ONE_V3.py              # Aplicação principal
+├── mensagens.json         # Templates de mensagens
+├── logoOne.ico            # Ícone da aplicação
+├── logoOne.png            # Logo da interface
+├── requirements.txt       # Dependências Python
+├── README.md              # Documentação
+└── AutoMessengerONE_Logs/ # Logs de execução (gerado automaticamente)
 ```
 
----
+### Perfis do Chrome
 
-## 🧩 Recursos Adicionais
-
-- As mensagens são carregadas a partir de `mensagens.json` e podem ser editadas diretamente pela interface.
-- O sistema mantém um log de execução detalhado para rastrear ações e erros.
-- Mensagens podem conter variáveis dinâmicas como `{nome}`, `{parcelas}`, `{cnpj_formatado}`, `{vencimentos}` etc.
-
----
-
-## 💡 Dicas
-
-- Execute o botão **"Iniciar Chrome de Automação"** antes do processamento para garantir login no Onvio Messenger.
-- Sempre valide o Excel antes do envio.
-- Utilize a edição de mensagens para adaptar os textos conforme o modelo.
-
----
-
-
-### ⚠️ Nota sobre o modelo `ONE`
-
-O modelo `ONE` utiliza um caminho **pré-definido** para localizar os arquivos de relatórios a serem anexados. Por padrão, o programa espera que os arquivos estejam dentro da pasta:
-
+Os perfis de automação são armazenados em:
 ```
-Documentos\Relatorios
+C:\PerfisChrome\automacao\Profile 1
+C:\PerfisChrome\automacao\Profile 2
 ```
 
-> Isso significa que, **em qualquer computador onde o programa for executado**, deve existir uma pasta chamada `Relatorios` dentro da pasta `Documentos` do usuário atual (ex: `C:\Users\SeuUsuario\Documents\Relatorios`).
+### Variáveis Dinâmicas
 
-📌 Certifique-se de que os relatórios estejam corretamente salvos nessa localização para garantir o funcionamento do envio com anexos.
+As mensagens suportam variáveis que são substituídas automaticamente:
 
-
-## 👨‍💻 Desenvolvedor
-
-**Hugo L. Almeida** – Equipe de TI  
-🔧 Suporte técnico e melhorias: [hugoalmeida.canellaesantos@gmail.com]
+| Variável | Descrição |
+|----------|-----------|
+| `{nome}` | Nome do contato/empresa |
+| `{empresa}` | Nome da empresa |
+| `{valor}` | Valor da parcela |
+| `{vencimento}` | Data de vencimento |
+| `{cnpj_formatado}` | CNPJ formatado |
+| `{competencia}` | Mês/ano de competência |
 
 ---
 
-## 📝 Licença
+## Logs e Monitoramento
 
-Este projeto é de uso interno. Consulte o time de TI para mais informações sobre distribuição e licença.
+Os logs são salvos automaticamente em `AutoMessengerONE_Logs/` com o formato:
+```
+log_YYYYMMDD_HHMMSS.txt
+```
+
+Cada log contém:
+- Timestamp de cada ação
+- Status de envio por destinatário
+- Erros e exceções detalhados
+- Resumo final de processamento
+
+---
+
+## Solução de Problemas
+
+| Problema | Solução |
+|----------|---------|
+| Chrome não inicia | Verifique se o Chrome está instalado e atualizado |
+| Erro de perfil | Delete a pasta do perfil e reinicie a aplicação |
+| Anexo não encontrado | Verifique se o arquivo existe em `Documentos\Relatorios` |
+| Timeout na página | Aumente o tempo de espera ou verifique a conexão |
+| Sessão expirada | Use o recurso Keep-Alive ou reinicie o Chrome |
+
+---
+
+## Desenvolvedor
+
+<div align="center">
+
+**Hugo L. Almeida**
+Equipe de TI
+
+[![Email](https://img.shields.io/badge/Email-hugoalmeida.canellaesantos%40gmail.com-D14836?style=flat-square&logo=gmail&logoColor=white)](mailto:hugoalmeida.canellaesantos@gmail.com)
+
+</div>
+
+---
+
+## Licença
+
+<div align="center">
+
+Este projeto é de **uso interno corporativo**.
+Consulte o time de TI para informações sobre distribuição.
+
+---
+
+*Desenvolvido com Python para automação corporativa*
+
+</div>
