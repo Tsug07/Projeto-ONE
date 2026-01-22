@@ -314,6 +314,26 @@ def obter_user_data_dir():
     perfil = obter_perfil_chrome()
     return rf"C:\PerfisChrome\automacao_perfil{perfil}"
 
+def fechar_debug_messenger(driver):
+    """Fecha o painel de debug do Messenger se estiver presente."""
+    try:
+        # Aguarda um pouco para a página carregar completamente
+        time.sleep(2)
+
+        # Verifica se o debug está presente
+        debug_panel = driver.find_elements(By.XPATH, '//*[@id="root"]/div/div[2]')
+        if debug_panel:
+            # Tenta clicar no botão de fechar o debug
+            botao_fechar = WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="root"]/div/div[2]/div[1]/div/button[2]'))
+            )
+            botao_fechar.click()
+            atualizar_log("Debug do Messenger fechado.", cor="azul")
+            time.sleep(1)
+    except:
+        # Se não encontrar o debug ou o botão, continua normalmente
+        pass
+
 def abrir_chrome_com_url(url):
     # Encerra apenas o Chrome do perfil atual (não interfere no outro perfil)
     encerrar_processos_chrome()
@@ -343,6 +363,10 @@ def abrir_chrome_com_url(url):
         driver.set_page_load_timeout(180)
         driver.get(url)
         atualizar_log(f"Chrome aberto com a URL: {url}")
+
+        # Fechar debug do Messenger se estiver presente
+        fechar_debug_messenger(driver)
+
         return driver
     except Exception as e:
         atualizar_log(f"Erro ao abrir o Chrome: {str(e)}")
@@ -819,14 +843,31 @@ def iniciar_processamento():
     thread = threading.Thread(target=processar_dados, args=(excel, modelo, linha))
     thread.start()
 
+def formatar_tempo(tempo_inicio):
+    """Calcula e formata o tempo decorrido desde tempo_inicio."""
+    tempo_total = time.time() - tempo_inicio
+    horas = int(tempo_total // 3600)
+    minutos = int((tempo_total % 3600) // 60)
+    segundos = int(tempo_total % 60)
+    if horas > 0:
+        return f"{horas}h {minutos}min {segundos}s"
+    elif minutos > 0:
+        return f"{minutos}min {segundos}s"
+    else:
+        return f"{segundos}s"
+
 def processar_dados(excel, modelo, linha_inicial):
+    # Iniciar timer de processamento
+    tempo_inicio = time.time()
+    atualizar_log("Timer iniciado.", cor="azul")
+
     url = "https://app.gestta.com.br/attendance/#/chat/contact-list"
     driver = abrir_chrome_com_url(url)
     if not driver:
         atualizar_log("Não foi possível abrir o Chrome. Processamento abortado.", cor="vermelho")
         finalizar_programa()
         return
-    
+
     time.sleep(10)
     dados = ler_dados_excel(excel, modelo, linha_inicial)
     if not dados:
@@ -856,7 +897,7 @@ def processar_dados(excel, modelo, linha_inicial):
         total_contatos = len(codigos)
         for i, (cod, nome_emp, contato, grupo, p, v, carta) in enumerate(zip(codigos, nomes, nome_contatos, nome_grupos, valores, vencimentos, cartas)):
             if cancelar:
-                atualizar_log("Processamento cancelado!", cor="azul")
+                atualizar_log(f"Processamento cancelado! Tempo decorrido: {formatar_tempo(tempo_inicio)}", cor="azul")
                 return
             linha_atual = linha_inicial + i
             porcentagem = ((i + 1) / total_contatos) * 100
@@ -874,7 +915,7 @@ def processar_dados(excel, modelo, linha_inicial):
         total_contatos = len(codigos)
         for i, (cod, nome_emp, contato, grupo, c, v, carta) in enumerate(zip(codigos, nomes, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas)):
             if cancelar:
-                atualizar_log("Processamento cancelado!", cor="azul")
+                atualizar_log(f"Processamento cancelado! Tempo decorrido: {formatar_tempo(tempo_inicio)}", cor="azul")
                 return
             linha_atual = linha_inicial + i
             porcentagem = ((i + 1) / total_contatos) * 100
@@ -893,7 +934,7 @@ def processar_dados(excel, modelo, linha_inicial):
         linha_atual = linha_inicial
         for i, (contato_key, contato, grupo, empresas, caminhos) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista)):
             if cancelar:
-                atualizar_log("Processamento cancelado!", cor="azul")
+                atualizar_log(f"Processamento cancelado! Tempo decorrido: {formatar_tempo(tempo_inicio)}", cor="azul")
                 return
             # Incrementar linha_atual com base no número de empresas processadas
             num_empresas = len(empresas)
@@ -924,7 +965,7 @@ def processar_dados(excel, modelo, linha_inicial):
         linha_atual = linha_inicial
         for i, (contato_key, contato, grupo, empresas, competencia) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, competencias)):
             if cancelar:
-                atualizar_log("Processamento cancelado!", cor="azul")
+                atualizar_log(f"Processamento cancelado! Tempo decorrido: {formatar_tempo(tempo_inicio)}", cor="azul")
                 return
             # Incrementar linha_atual com base no número de empresas processadas
             num_empresas = len(empresas)
@@ -967,7 +1008,7 @@ def processar_dados(excel, modelo, linha_inicial):
 
         for i, (contato_key, contato, grupo, empresas) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista)):
             if cancelar:
-                atualizar_log("Processamento cancelado!", cor="azul")
+                atualizar_log(f"Processamento cancelado! Tempo decorrido: {formatar_tempo(tempo_inicio)}", cor="azul")
                 return
             # Incrementar linha_atual com base no número de empresas processadas
             num_empresas = len(empresas)
@@ -995,6 +1036,7 @@ def processar_dados(excel, modelo, linha_inicial):
             time.sleep(5)
             linha_atual += num_empresas
     atualizar_progresso(100, "Concluído")
+    atualizar_log(f"Tempo total de processamento: {formatar_tempo(tempo_inicio)}", cor="verde")
     atualizar_log("Processamento finalizado!", cor="verde")
     finalizar_programa()
 
@@ -1041,6 +1083,10 @@ def finalizar_programa_agendado():
 def processar_dados_agendado(excel, modelo, linha_inicial):
     """Processa os dados usando o driver já aberto pelo agendamento"""
     global driver_agendamento
+
+    # Iniciar timer de processamento
+    tempo_inicio = time.time()
+    atualizar_log("Timer iniciado.", cor="azul")
 
     driver = driver_agendamento
 
@@ -1200,6 +1246,9 @@ def processar_dados_agendado(excel, modelo, linha_inicial):
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s){anexo_info}\n")
             time.sleep(5)
             linha_atual += num_empresas
+
+    # Exibir tempo de processamento
+    atualizar_log(f"Tempo total de processamento: {formatar_tempo(tempo_inicio)}", cor="verde")
 
     if not processamento_cancelado:
         atualizar_progresso(100, "Concluído")
@@ -1564,6 +1613,10 @@ def abrir_chrome_agendamento():
         driver_agendamento.get(url)
         atualizar_log(f"Chrome aberto no Messenger.", cor="verde")
         atualizar_log("Por favor, faça login se necessário.", cor="azul")
+
+        # Fechar debug do Messenger se estiver presente
+        fechar_debug_messenger(driver_agendamento)
+
         return driver_agendamento
     except Exception as e:
         atualizar_log(f"Erro ao abrir Chrome: {str(e)}", cor="vermelho")
