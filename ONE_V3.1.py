@@ -220,9 +220,33 @@ def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
                         atualizar_log("Transferencia cancelada, bug corrgido!", cor="azul")
                         return True
                 except:
-                    atualizar_log("Janela de bug não identificada, e bug não solucionado", cor="vermelho")      
+                    atualizar_log("Janela de bug não identificada, e bug não solucionado", cor="vermelho")
+
+                # Tentar novamente após refresh
+                atualizar_log("Recarregando página e tentando desconsiderar novamente...", cor="azul")
+                driver.execute_script("location.reload();")
+                time.sleep(5)
+
+                # Segunda tentativa de desconsiderar
+                try:
+                    botao_desconsiderar = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, '//*[@id="ChatHeader"]/div[2]/div[1]/div[3]/div[1]/button/div'))
+                    )
+                    botao_desconsiderar.click()
+                    atualizar_log("Botão de DESCONSIDERAR clicado (2ª tentativa).")
+                    WebDriverWait(driver, 5).until(
+                        EC.presence_of_element_located((By.XPATH, '/html/body/div[4]'))
+                    )
+                    desconsiderar = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, '/html/body/div[4]/div/div/div[3]/button[2]'))
+                    )
+                    desconsiderar.click()
+                    time.sleep(4)
+                    atualizar_log("Mensagem Desconsiderada com Sucesso (2ª tentativa)!", cor="azul")
+                    return True
+                except:
+                    atualizar_log("Falha na 2ª tentativa de desconsiderar. Passando para próxima empresa...", cor="vermelho")
                     return False
-                return False
                 
             return True
         atualizar_log("Barra de mensagem não encontrada.")
