@@ -625,11 +625,12 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                         for idx, col_name in enumerate(colunas_excel[4:], start=4):
                             if col_name and idx < len(row):
                                 valor = row[idx]
-                                if col_name == "Competencia":
+                                col_name_upper = str(col_name).strip().upper()
+                                if col_name_upper == "COMPETENCIA":
                                     info_extra['competencia'] = str(valor) if valor is not None else ""
-                                elif col_name == "CNPJ":
+                                elif col_name_upper == "CNPJ":
                                     empresa_data['cnpj'] = str(valor) if valor is not None else ""
-                                elif col_name == "Info_Extra":
+                                elif col_name_upper == "INFO_EXTRA":
                                     empresa_data['info_extra'] = str(valor) if valor is not None else ""
 
                     # Agrupar por contato ou grupo (se contato for "NONE")
