@@ -74,7 +74,8 @@ MODELOS = {
         "mensagem_padrao": "Mensagem Padrão"
     },
     "ALL_info": {
-        "colunas": ["Codigo", "Empresa", "Contato Onvio", "Grupo Onvio", "Competencia"],
+        "colunas": ["Codigo", "Empresa", "Contato Onvio", "Grupo Onvio"],
+        "colunas_opcionais": ["Competencia", "CNPJ", "Info_Extra"],  # Colunas que podem ou não existir
         "mensagem_padrao": "ALLinfo"
     },
     # "ProrContrato": {
@@ -224,7 +225,7 @@ def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
 
                 # Tentar novamente após refresh
                 atualizar_log("Recarregando página e tentando desconsiderar novamente...", cor="azul")
-                driver.execute_script("location.reload();")
+                driver.refresh()
                 time.sleep(5)
 
                 # Segunda tentativa de desconsiderar
@@ -496,6 +497,23 @@ def validar_excel(caminho, modelo):
         sheet = wb.active
         colunas_excel = [cell.value for cell in sheet[1]]
         colunas_esperadas = MODELOS[modelo]["colunas"]
+
+        # Para ALL_info, aceitar colunas opcionais adicionais
+        if modelo == "ALL_info":
+            colunas_opcionais = MODELOS[modelo].get("colunas_opcionais", [])
+            # Verifica se as colunas obrigatórias estão presentes
+            colunas_obrigatorias = colunas_esperadas[:4]  # Codigo, Empresa, Contato Onvio, Grupo Onvio
+            if colunas_excel[:4] != colunas_obrigatorias:
+                messagebox.showerror("Erro", f"O Excel não corresponde ao modelo {modelo}. Colunas obrigatórias: {colunas_obrigatorias}")
+                return False
+            # Verifica se as colunas extras são válidas (opcionais)
+            colunas_extras = colunas_excel[4:]
+            for col in colunas_extras:
+                if col and col not in colunas_opcionais:
+                    messagebox.showwarning("Aviso", f"Coluna '{col}' não reconhecida. Colunas opcionais válidas: {colunas_opcionais}")
+            atualizar_log(f"Colunas detectadas: {colunas_excel}")
+            return True
+
         if colunas_excel != colunas_esperadas:
             messagebox.showerror("Erro", f"O Excel não corresponde ao modelo {modelo}. Esperado: {colunas_esperadas}")
             return False
@@ -510,6 +528,13 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
         sheet = wb.active
         dados = {}
         colunas = MODELOS[modelo]["colunas"]
+
+        # Para ALL_info, detectar colunas dinamicamente
+        colunas_excel = []
+        if modelo == "ALL_info":
+            colunas_excel = [cell.value for cell in sheet[1]]
+            dados['_colunas_detectadas'] = colunas_excel  # Armazenar para uso posterior
+
         for row in sheet.iter_rows(min_row=linha_inicial, values_only=True):
             if row and len(row) >= len(colunas):
                 codigo = row[0]
@@ -582,30 +607,45 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                         }
                 
                 elif modelo == "ALL_info":
-                    empresa, nome_contato, nome_grupo, competencia = row[1:5]
+                    # Colunas obrigatórias: Codigo, Empresa, Contato Onvio, Grupo Onvio
+                    empresa, nome_contato, nome_grupo = row[1:4]
                     # Validar e normalizar valores vazios
                     nome_contato = str(nome_contato) if nome_contato is not None else "NONE"
                     nome_grupo = str(nome_grupo) if nome_grupo is not None else "NONE"
-                    competencia = str(competencia) if competencia is not None else ""
+
+                    # Detectar colunas opcionais dinamicamente
+                    empresa_data = {
+                        'codigo': codigo,
+                        'empresa': empresa
+                    }
+                    info_extra = {}
+
+                    # Mapear colunas extras baseado no header
+                    if colunas_excel:
+                        for idx, col_name in enumerate(colunas_excel[4:], start=4):
+                            if col_name and idx < len(row):
+                                valor = row[idx]
+                                if col_name == "Competencia":
+                                    info_extra['competencia'] = str(valor) if valor is not None else ""
+                                elif col_name == "CNPJ":
+                                    empresa_data['cnpj'] = str(valor) if valor is not None else ""
+                                elif col_name == "Info_Extra":
+                                    empresa_data['info_extra'] = str(valor) if valor is not None else ""
+
                     # Agrupar por contato ou grupo (se contato for "NONE")
                     chave = nome_contato if nome_contato.upper() != "NONE" else nome_grupo
-                    if chave in dados:
-                        dados[chave]['empresas'].append({
-                            'codigo': codigo,
-                            'empresa': empresa
-                        })
-                        # Armazenar competência (assumindo que é a mesma para todas as empresas do mesmo contato)
-                        if 'competencia' not in dados[chave]:
-                            dados[chave]['competencia'] = competencia
+                    if chave in dados and chave != '_colunas_detectadas':
+                        dados[chave]['empresas'].append(empresa_data)
+                        # Armazenar info_extra no nível do grupo (assumindo que é a mesma para todas)
+                        for key, val in info_extra.items():
+                            if key not in dados[chave]:
+                                dados[chave][key] = val
                     else:
                         dados[chave] = {
                             'nome_contato': nome_contato,
                             'nome_grupo': nome_grupo,
-                            'competencia': competencia,
-                            'empresas': [{
-                                'codigo': codigo,
-                                'empresa': empresa
-                            }]
+                            'empresas': [empresa_data],
+                            **info_extra
                         }
 
                 else:  # Modelo ALL
@@ -699,15 +739,30 @@ def extrair_dados(dados, modelo):
         return contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista
 
     elif modelo == "ALL_info":
-        contatos, nome_contatos, nome_grupos, empresas_lista, competencias = [], [], [], [], []
+        contatos, nome_contatos, nome_grupos, empresas_lista, extras = [], [], [], [], []
         for chave, info in dados.items():
+            if chave == '_colunas_detectadas':
+                continue  # Pular metadados de colunas
             contatos.append(chave)
             nome_contatos.append(info['nome_contato'])
             nome_grupos.append(info['nome_grupo'])
-            competencias.append(info.get('competencia', ''))
-            empresas = [(emp['codigo'], emp['empresa']) for emp in info['empresas']]
+            # Capturar dados extras (competencia, etc.) no nível do grupo
+            extra_info = {
+                'competencia': info.get('competencia', ''),
+            }
+            extras.append(extra_info)
+            # Capturar empresas com dados opcionais (cnpj, info_extra)
+            empresas = []
+            for emp in info['empresas']:
+                emp_data = {
+                    'codigo': emp['codigo'],
+                    'empresa': emp['empresa'],
+                    'cnpj': emp.get('cnpj', ''),
+                    'info_extra': emp.get('info_extra', '')
+                }
+                empresas.append(emp_data)
             empresas_lista.append(empresas)
-        return contatos, nome_contatos, nome_grupos, empresas_lista, competencias
+        return contatos, nome_contatos, nome_grupos, empresas_lista, extras
 
     else:  # Modelo ALL
         contatos, nome_contatos, nome_grupos, empresas_lista = [], [], [], []
@@ -747,7 +802,7 @@ def salvar_mensagens(mensagens):
     with open("mensagens.json", "w", encoding="utf-8") as f:
         json.dump(mensagens, f, ensure_ascii=False, indent=4)
 
-def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=None, cnpj=None, nome_empresa=None, competencia=None):
+def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=None, cnpj=None, nome_empresa=None, competencia=None, empresas_info=None):
     mensagens = carregar_mensagens()
     msg = mensagens.get(mensagem_selecionada.get(), MODELOS[modelo]["mensagem_padrao"])
     
@@ -789,32 +844,70 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
             # Mensagem simples sem dados dinâmicos
             msg = mensagens.get(msg_selecionada, "Mensagem padrão não encontrada.")
         else:
-            # Mensagem com dados (Parabens_Regularizado, ALLinfo, etc.)
+            # Mensagem com dados (Parabens_Regularizado, ALLinfo, SemReceita, etc.)
             if len(nomes_empresas) > 1:
                 # Múltiplas empresas - usa versão _multi
                 msg_key = f"{msg_selecionada}_multi" if f"{msg_selecionada}_multi" in mensagens else msg_selecionada
                 msg = mensagens.get(msg_key, mensagens.get(msg_selecionada, "Mensagem padrão não encontrada."))
-                lista_empresas = "\n".join([f". {emp}" for emp in nomes_empresas])
-                # Tentar formatar com lista_empresas e competência, se falhar, enviar sem formatação
-                try:
-                    if competencia:
-                        msg = msg.format(empresas=lista_empresas, competencia=competencia)
-                    else:
-                        msg = msg.format(empresas=lista_empresas)
-                except KeyError:
-                    pass
+
+                # Verificar se a mensagem precisa de empresas com CNPJ
+                if empresas_info and '{empresas_cnpj}' in msg:
+                    # Formatar lista de empresas com CNPJ
+                    lista_empresas_cnpj = []
+                    for emp in empresas_info:
+                        cnpj_emp = emp.get('cnpj', '')
+                        if cnpj_emp:
+                            try:
+                                cnpj_formatado = formatar_cnpj(cnpj_emp)
+                            except ValueError:
+                                cnpj_formatado = cnpj_emp
+                            lista_empresas_cnpj.append(f". {emp['empresa']}, CNPJ {cnpj_formatado}")
+                        else:
+                            lista_empresas_cnpj.append(f". {emp['empresa']}")
+                    empresas_cnpj_str = "\n".join(lista_empresas_cnpj)
+                    try:
+                        msg = msg.format(empresas_cnpj=empresas_cnpj_str, competencia=competencia if competencia else "")
+                    except KeyError:
+                        pass
+                else:
+                    # Formato padrão sem CNPJ
+                    lista_empresas = "\n".join([f". {emp}" for emp in nomes_empresas])
+                    # Tentar formatar com lista_empresas e competência, se falhar, enviar sem formatação
+                    try:
+                        if competencia:
+                            msg = msg.format(empresas=lista_empresas, competencia=competencia)
+                        else:
+                            msg = msg.format(empresas=lista_empresas)
+                    except KeyError:
+                        pass
             else:
                 # Uma única empresa
                 msg = mensagens.get(msg_selecionada, "Mensagem padrão não encontrada.")
                 nome_unico = nomes_empresas[0] if nomes_empresas else ""
-                # Tentar formatar com nome e competência, se falhar, enviar sem formatação
-                try:
-                    if competencia:
-                        msg = msg.format(nome=nome_unico, competencia=competencia)
+
+                # Verificar se a mensagem precisa de CNPJ
+                if empresas_info and '{cnpj}' in msg:
+                    cnpj_emp = empresas_info[0].get('cnpj', '') if empresas_info else ''
+                    if cnpj_emp:
+                        try:
+                            cnpj_formatado = formatar_cnpj(cnpj_emp)
+                        except ValueError:
+                            cnpj_formatado = cnpj_emp
                     else:
-                        msg = msg.format(nome=nome_unico)
-                except KeyError:
-                    pass
+                        cnpj_formatado = ''
+                    try:
+                        msg = msg.format(nome=nome_unico, cnpj=cnpj_formatado, competencia=competencia if competencia else "")
+                    except KeyError:
+                        pass
+                else:
+                    # Tentar formatar com nome e competência, se falhar, enviar sem formatação
+                    try:
+                        if competencia:
+                            msg = msg.format(nome=nome_unico, competencia=competencia)
+                        else:
+                            msg = msg.format(nome=nome_unico)
+                    except KeyError:
+                        pass
     return msg
 
 # Funções de Interface
@@ -984,10 +1077,10 @@ def processar_dados(excel, modelo, linha_inicial):
             linha_atual += num_empresas
             
     elif modelo == "ALL_info":
-        contatos, nome_contatos, nome_grupos, empresas_lista, competencias = extrair_dados(dados, modelo)
+        contatos, nome_contatos, nome_grupos, empresas_lista, extras = extrair_dados(dados, modelo)
         total_contatos = len(contatos)
         linha_atual = linha_inicial
-        for i, (contato_key, contato, grupo, empresas, competencia) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, competencias)):
+        for i, (contato_key, contato, grupo, empresas, extra_info) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, extras)):
             if cancelar:
                 atualizar_log(f"Processamento cancelado! Tempo decorrido: {formatar_tempo(tempo_inicio)}", cor="azul")
                 return
@@ -996,21 +1089,27 @@ def processar_dados(excel, modelo, linha_inicial):
             linha_atual_final = linha_atual + num_empresas - 1
             porcentagem = ((i + 1) / total_contatos) * 100
             atualizar_progresso(porcentagem, f"{linha_atual_final}/{total_linhas + linha_inicial - 1}")
-            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas - Competência: {competencia}\n", cor="azul")
-            for cod, emp in empresas:
-                atualizar_log(f"Empresa: {cod} - {emp}")
+
+            # Extrair competência dos extras
+            competencia = extra_info.get('competencia', '')
+            log_extra = f" - Competência: {competencia}" if competencia else ""
+            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas{log_extra}\n", cor="azul")
+
+            for emp in empresas:
+                cnpj_log = f" - CNPJ: {emp.get('cnpj', '')}" if emp.get('cnpj') else ""
+                atualizar_log(f"Empresa: {emp['codigo']} - {emp['empresa']}{cnpj_log}")
 
             # Monta lista com os nomes das empresas
-            nomes_empresas = [emp for _, emp in empresas]
+            nomes_empresas = [emp['empresa'] for emp in empresas]
 
-            # Passa a lista de empresas e competência para a mensagem
-            mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas, competencia=competencia)
+            # Passa a lista de empresas, competência e dados extras para a mensagem
+            mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas, competencia=competencia, empresas_info=empresas)
 
             # Enviar uma única mensagem
             identificador = ", ".join(nomes_empresas)
             if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
-                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s) - Competência: {competencia}\n")
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s){log_extra}\n")
 
             time.sleep(5)
             linha_atual += num_empresas
@@ -1210,10 +1309,10 @@ def processar_dados_agendado(excel, modelo, linha_inicial):
             linha_atual += num_empresas
 
     elif modelo == "ALL_info":
-        contatos, nome_contatos, nome_grupos, empresas_lista, competencias = extrair_dados(dados, modelo)
+        contatos, nome_contatos, nome_grupos, empresas_lista, extras = extrair_dados(dados, modelo)
         total_contatos = len(contatos)
         linha_atual = linha_inicial
-        for i, (contato_key, contato, grupo, empresas, competencia) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, competencias)):
+        for i, (contato_key, contato, grupo, empresas, extra_info) in enumerate(zip(contatos, nome_contatos, nome_grupos, empresas_lista, extras)):
             if cancelar:
                 atualizar_log("Processamento cancelado!", cor="azul")
                 processamento_cancelado = True
@@ -1222,15 +1321,22 @@ def processar_dados_agendado(excel, modelo, linha_inicial):
             linha_atual_final = linha_atual + num_empresas - 1
             porcentagem = ((i + 1) / total_contatos) * 100
             atualizar_progresso(porcentagem, f"{linha_atual_final}/{total_linhas + linha_inicial - 1}")
-            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas - Competência: {competencia}\n", cor="azul")
-            for cod, emp in empresas:
-                atualizar_log(f"Empresa: {cod} - {emp}")
-            nomes_empresas = [emp for _, emp in empresas]
-            mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas, competencia=competencia)
+
+            # Extrair competência dos extras
+            competencia = extra_info.get('competencia', '')
+            log_extra = f" - Competência: {competencia}" if competencia else ""
+            atualizar_log(f"\nProcessando contato {contato_key}: {num_empresas} empresas{log_extra}\n", cor="azul")
+
+            for emp in empresas:
+                cnpj_log = f" - CNPJ: {emp.get('cnpj', '')}" if emp.get('cnpj') else ""
+                atualizar_log(f"Empresa: {emp['codigo']} - {emp['empresa']}{cnpj_log}")
+
+            nomes_empresas = [emp['empresa'] for emp in empresas]
+            mensagem = mensagem_padrao(modelo, nome_empresa=nomes_empresas, competencia=competencia, empresas_info=empresas)
             identificador = ", ".join(nomes_empresas)
             if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
-                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s) - Competência: {competencia}\n")
+                    f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s){log_extra}\n")
             time.sleep(5)
             linha_atual += num_empresas
 
