@@ -75,7 +75,7 @@ MODELOS = {
     },
     "ALL_info": {
         "colunas": ["Codigo", "Empresa", "Contato Onvio", "Grupo Onvio"],
-        "colunas_opcionais": ["Competencia", "CNPJ", "Info_Extra"],  # Colunas que podem ou não existir
+        "colunas_opcionais": ["CNPJ", "Competencia", "Info_Extra"],  # Colunas que podem ou não existir
         "mensagem_padrao": "ALLinfo"
     },
     # "ProrContrato": {
