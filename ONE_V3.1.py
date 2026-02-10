@@ -115,33 +115,44 @@ def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
                 atualizar_log("Processamento cancelado!", cor="azul")
                 return False
 
-            # Converte mensagem para HTML no formato que a página espera
-            # \n \n ou \n\n (linha em branco) -> </p><p>&nbsp;</p><p>
-            # \n (quebra simples) -> </p><p>
-            mensagem_html = mensagem.strip().replace('\n \n', '\n\n')  # Normaliza espaço entre quebras
-            mensagem_html = mensagem_html.replace('\n\n', '</p><p>&nbsp;</p><p>')
-            mensagem_html = mensagem_html.replace('\n', '</p><p>')
-            mensagem_html = f'<p>{mensagem_html}</p>'
+            # Verifica se há mensagem para enviar
+            tem_mensagem = mensagem and mensagem.strip()
 
-            # Insere o HTML diretamente no elemento (funciona em segundo plano)
-            driver.execute_script("""
-                arguments[0].innerHTML = arguments[1];
-                arguments[0].dispatchEvent(new InputEvent('input', { bubbles: true }));
-            """, elemento_alvo, mensagem_html)
-            time.sleep(0.5)
-            atualizar_log("Mensagem inserida com sucesso.")
-            
-            # Clicar no botão de enviar
-            try:
-                botao_enviar = WebDriverWait(driver, 10).until(
-                    EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[3]/div[1]/button'))
-                )
-                botao_enviar.click()
-                atualizar_log("Botão de enviar clicado com sucesso.", cor="azul")
-                time.sleep(5)
-            except:
-                atualizar_log("Erro ao clicar no botão de enviar.", cor="vermelho")
-                return False
+            if tem_mensagem:
+                # Converte mensagem para HTML no formato que a página espera
+                # \n \n ou \n\n (linha em branco) -> </p><p>&nbsp;</p><p>
+                # \n (quebra simples) -> </p><p>
+                mensagem_html = mensagem.strip().replace('\n \n', '\n\n')  # Normaliza espaço entre quebras
+                mensagem_html = mensagem_html.replace('\n\n', '</p><p>&nbsp;</p><p>')
+                mensagem_html = mensagem_html.replace('\n', '</p><p>')
+                mensagem_html = f'<p>{mensagem_html}</p>'
+
+                # Insere o HTML diretamente no elemento (funciona em segundo plano)
+                driver.execute_script("""
+                    arguments[0].innerHTML = arguments[1];
+                    arguments[0].dispatchEvent(new InputEvent('input', { bubbles: true }));
+                """, elemento_alvo, mensagem_html)
+                time.sleep(0.5)
+                atualizar_log("Mensagem inserida com sucesso.")
+
+                # Clicar no botão de enviar
+                try:
+                    botao_enviar = WebDriverWait(driver, 10).until(
+                        EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[3]/div[1]/button'))
+                    )
+                    botao_enviar.click()
+                    atualizar_log("Botão de enviar clicado com sucesso.", cor="azul")
+                    time.sleep(5)
+                except:
+                    atualizar_log("Erro ao clicar no botão de enviar.", cor="vermelho")
+                    return False
+            else:
+                # Sem mensagem, verifica se há arquivos para enviar
+                if not caminhos:
+                    atualizar_log("Erro: Sem mensagem e sem arquivos para enviar.", cor="vermelho")
+                    return False
+                atualizar_log("Sem mensagem de texto, enviando apenas anexo...", cor="azul")
+
             if caminhos:  # Enviar anexo para qualquer modelo que tenha caminhos
                 try:
                     input_file = WebDriverWait(driver, 10).until(
@@ -246,6 +257,27 @@ def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
                     atualizar_log("Mensagem Desconsiderada com Sucesso (2ª tentativa)!", cor="azul")
                     return True
                 except:
+                    atualizar_log("Erro na 2ª tentativa de desconsiderar.", cor="vermelho")
+
+                    # Tratamento do bug de transferência na 2ª tentativa
+                    try:
+                        janela_transferência = WebDriverWait(driver, 5).until(
+                            EC.presence_of_element_located((By.XPATH, '/html/body/div[4]/div'))
+                        )
+                        if janela_transferência:
+                            atualizar_log("Janela de transferência detectada na 2ª tentativa, cancelando...", cor="azul")
+                            cancelar_transf = WebDriverWait(driver, 10).until(
+                                EC.element_to_be_clickable((By.XPATH, '/html/body/div[4]/div/div/div[3]/button[1]'))
+                            )
+                            cancelar_transf.click()
+                            atualizar_log("Transferência cancelada na 2ª tentativa.", cor="azul")
+                    except:
+                        atualizar_log("Janela de transferência não encontrada na 2ª tentativa.", cor="vermelho")
+
+                    # Refresh antes de passar para próxima empresa
+                    atualizar_log("Fazendo refresh antes de passar para próxima empresa...", cor="azul")
+                    driver.refresh()
+                    time.sleep(5)
                     atualizar_log("Falha na 2ª tentativa de desconsiderar. Passando para próxima empresa...", cor="vermelho")
                     return False
                 
