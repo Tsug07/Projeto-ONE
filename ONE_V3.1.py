@@ -103,7 +103,7 @@ def esperar_carregamento_completo(driver):
         atualizar_log(f"Erro ao esperar carregamento: {str(e)}", cor="vermelho")
         return False
 
-def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
+def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None, pular_desconsiderar=False):
     try:
         elemento_alvo = WebDriverWait(driver, 10).until(
             EC.element_to_be_clickable((By.XPATH, '//*[@id="preview-root"]/div[2]/div[3]/div[1]/div/div[2]/div[2]/div[1]'))
@@ -194,7 +194,11 @@ def focar_barra_mensagem_enviar(driver, mensagem, modelo=None, caminhos=None):
                     return False
                
                 
-            time.sleep(3)       
+            time.sleep(3)
+            # Pular desconsiderar se cliente já enviou mensagem (botão de transferência detectado)
+            if pular_desconsiderar:
+                atualizar_log("Cliente já enviou mensagem - pulando desconsiderar para preservar conversa.", cor="azul")
+                return True
             # Clicar no botão de desconsiderar
             try:
                 botao_desconsiderar = WebDriverWait(driver, 10).until(
@@ -315,11 +319,24 @@ def encontrar_e_clicar_barra_contatos(driver, contato, grupo):
         atualizar_log(f"Erro ao interagir com a página: {str(e)}", cor="vermelho")
         return False
 
+def verificar_botao_transferencia(driver):
+    """Verifica se o botão de transferência está presente no chat.
+    Se presente, significa que o cliente já enviou uma mensagem."""
+    try:
+        elementos = driver.find_elements(By.XPATH, '//*[@id="ChatHeader"]/div[2]/div[1]/div[2]/div[1]/button')
+        if elementos:
+            atualizar_log("Botão de transferência detectado - cliente já enviou mensagem.", cor="azul")
+            return True
+        return False
+    except:
+        return False
+
 def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, modelo=None, caminhos=None):
     try:
         if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
             time.sleep(6)
-            if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
+            cliente_enviou = verificar_botao_transferencia(driver)
+            if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos, pular_desconsiderar=cliente_enviou):
                 atualizar_log(f"\nAviso enviado para {contato or grupo}, {codigo} - {identificador}.\n", cor="verde")
                 focar_pagina_geral(driver)
                 return True
@@ -336,7 +353,8 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, mod
                 if processar_resultados_busca(driver):
                     atualizar_log("Contato encontrado na aba Contatos.", cor="azul")
                     time.sleep(6)
-                    if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
+                    cliente_enviou = verificar_botao_transferencia(driver)
+                    if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos, pular_desconsiderar=cliente_enviou):
                         atualizar_log(f"\nAviso enviado para {contato}, {codigo} - {identificador}.\n", cor="verde")
                         focar_pagina_geral(driver)
                         return True
@@ -347,7 +365,8 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, mod
                 if processar_resultados_busca(driver):
                     atualizar_log("Grupo encontrado na aba Grupos.", cor="azul")
                     time.sleep(6)
-                    if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos):
+                    cliente_enviou = verificar_botao_transferencia(driver)
+                    if focar_barra_mensagem_enviar(driver, mensagem, modelo, caminhos, pular_desconsiderar=cliente_enviou):
                         atualizar_log(f"\nAviso enviado para {grupo}, {codigo} - {identificador}.\n", cor="verde")
                         focar_pagina_geral(driver)
                         return True
