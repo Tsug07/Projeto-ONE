@@ -7,6 +7,7 @@ import time
 import os
 import psutil
 import re
+import unicodedata
 import openpyxl
 import customtkinter as ctk
 from selenium import webdriver
@@ -58,6 +59,10 @@ perfil_selecionado = None  # Perfil do Chrome (1 ou 2)
 driver_agendamento = None  # Driver do Chrome para agendamento
 keep_alive_ativo = False  # Flag para keep-alive
 KEEP_ALIVE_INTERVALO = 30 * 60 * 1000  # 30 minutos em milissegundos
+
+# Modelo ALL_info: agrupar empresas do mesmo contato Onvio em UMA mensagem (True)
+# ou enviar UMA mensagem por empresa/linha do Excel (False).
+AGRUPAR_POR_CONTATO = False
 
 # Modelos suportados
 MODELOS = {
@@ -523,6 +528,19 @@ def focar_pagina_geral(driver):
         return False
 
 # Funções de Dados
+def normalizar_nome_coluna(nome):
+    """Converte o titulo de uma coluna do Excel no nome do placeholder da mensagem.
+
+    Ex.: "Porte atual" -> porte_atual | "% do limite EPP" -> do_limite_epp
+    Acentos sao removidos e o que nao for letra/numero vira "_".
+    """
+    if nome is None:
+        return ""
+    texto = unicodedata.normalize('NFKD', str(nome).strip())
+    texto = ''.join(c for c in texto if not unicodedata.combining(c))
+    texto = re.sub(r'[^0-9a-zA-Z]+', '_', texto).strip('_').lower()
+    return texto
+
 def validar_excel(caminho, modelo):
     try:
         wb = openpyxl.load_workbook(caminho)
@@ -532,18 +550,16 @@ def validar_excel(caminho, modelo):
 
         # Para ALL_info, aceitar colunas opcionais adicionais
         if modelo == "ALL_info":
-            colunas_opcionais = MODELOS[modelo].get("colunas_opcionais", [])
             # Verifica se as colunas obrigatórias estão presentes
             colunas_obrigatorias = colunas_esperadas[:4]  # Codigo, Empresa, Contato Onvio, Grupo Onvio
             if colunas_excel[:4] != colunas_obrigatorias:
                 messagebox.showerror("Erro", f"O Excel não corresponde ao modelo {modelo}. Colunas obrigatórias: {colunas_obrigatorias}")
                 return False
-            # Verifica se as colunas extras são válidas (opcionais)
-            colunas_extras = colunas_excel[4:]
-            for col in colunas_extras:
-                if col and col not in colunas_opcionais:
-                    messagebox.showwarning("Aviso", f"Coluna '{col}' não reconhecida. Colunas opcionais válidas: {colunas_opcionais}")
+            # Toda coluna extra é aceita e vira um placeholder na mensagem.
             atualizar_log(f"Colunas detectadas: {colunas_excel}")
+            placeholders = [f"{{{normalizar_nome_coluna(c)}}}" for c in colunas_excel[4:] if c]
+            if placeholders:
+                atualizar_log(f"Variáveis disponíveis na mensagem: {', '.join(placeholders)}", cor="azul")
             return True
 
         if colunas_excel != colunas_esperadas:
@@ -652,21 +668,38 @@ def ler_dados_excel(caminho_excel, modelo, linha_inicial=2):
                     }
                     info_extra = {}
 
-                    # Mapear colunas extras baseado no header
+                    # Mapear colunas extras baseado no header.
+                    # Toda coluna vira um campo da empresa com nome normalizado, e
+                    # portanto um placeholder utilizável na mensagem.
                     if colunas_excel:
                         for idx, col_name in enumerate(colunas_excel[4:], start=4):
                             if col_name and idx < len(row):
                                 valor = row[idx]
-                                col_name_upper = str(col_name).strip().upper()
-                                if col_name_upper == "COMPETENCIA":
-                                    info_extra['competencia'] = str(valor) if valor is not None else ""
-                                elif col_name_upper == "CNPJ":
-                                    empresa_data['cnpj'] = str(valor) if valor is not None else ""
-                                elif col_name_upper == "INFO_EXTRA":
-                                    empresa_data['info_extra'] = str(valor) if valor is not None else ""
+                                valor = str(valor) if valor is not None else ""
+                                chave_col = normalizar_nome_coluna(col_name)
+                                if not chave_col:
+                                    continue
+                                # Competencia é do contato, não da empresa
+                                if chave_col == "competencia":
+                                    info_extra['competencia'] = valor
+                                else:
+                                    empresa_data[chave_col] = valor
 
-                    # Agrupar por contato ou grupo (se contato for "NONE")
-                    chave = nome_contato if nome_contato.upper() != "NONE" else nome_grupo
+                    # Sem contato e sem grupo não há destinatário possível
+                    if nome_contato.upper() == "NONE" and nome_grupo.upper() == "NONE":
+                        atualizar_log(f"Linha ignorada (sem contato/grupo): {codigo} - {empresa}", cor="vermelho")
+                        continue
+
+                    # Chave de agrupamento: por contato/grupo (padrão) ou por linha,
+                    # quando o envio deve ser individual por empresa.
+                    destinatario = nome_contato if nome_contato.upper() != "NONE" else nome_grupo
+                    if AGRUPAR_POR_CONTATO:
+                        chave = destinatario
+                    else:
+                        # Chave única por linha => uma mensagem por empresa,
+                        # mesmo que o contato se repita no Excel.
+                        chave = f"{destinatario}|{codigo}|{len(dados)}"
+
                     if chave in dados and chave != '_colunas_detectadas':
                         dados[chave]['empresas'].append(empresa_data)
                         # Armazenar info_extra no nível do grupo (assumindo que é a mesma para todas)
@@ -784,15 +817,12 @@ def extrair_dados(dados, modelo):
                 'competencia': info.get('competencia', ''),
             }
             extras.append(extra_info)
-            # Capturar empresas com dados opcionais (cnpj, info_extra)
+            # Capturar empresas com todos os campos lidos do Excel (colunas extras inclusas)
             empresas = []
             for emp in info['empresas']:
-                emp_data = {
-                    'codigo': emp['codigo'],
-                    'empresa': emp['empresa'],
-                    'cnpj': emp.get('cnpj', ''),
-                    'info_extra': emp.get('info_extra', '')
-                }
+                emp_data = dict(emp)
+                emp_data.setdefault('cnpj', '')
+                emp_data.setdefault('info_extra', '')
                 empresas.append(emp_data)
             empresas_lista.append(empresas)
         return contatos, nome_contatos, nome_grupos, empresas_lista, extras
@@ -821,6 +851,19 @@ def formatar_cnpj(cnpj):
     return cnpj_formatado
 
 # Funções de Mensagem
+class _DicionarioTolerante(dict):
+    """Placeholder sem valor correspondente é substituído por string vazia."""
+    def __missing__(self, chave):
+        return ""
+
+def formatar_tolerante(msg, valores):
+    """Aplica .format() sem quebrar em placeholder desconhecido ou chave ausente."""
+    try:
+        return msg.format_map(_DicionarioTolerante(valores))
+    except (IndexError, ValueError):
+        # Chaves malformadas na mensagem (ex.: "{" solto) - envia sem formatar
+        return msg
+
 def carregar_mensagens():
     try:
         with open("mensagens.json", "r", encoding="utf-8") as f:
@@ -877,70 +920,64 @@ def mensagem_padrao(modelo, pessoas=None, vencimentos=None, valores=None, carta=
             # Mensagem simples sem dados dinâmicos
             msg = mensagens.get(msg_selecionada, "Mensagem padrão não encontrada.")
         else:
-            # Mensagem com dados (Parabens_Regularizado, ALLinfo, SemReceita, etc.)
-            if len(nomes_empresas) > 1:
-                # Múltiplas empresas - usa versão _multi
+            multi = len(nomes_empresas) > 1
+            if multi:
+                # Múltiplas empresas - usa versão _multi quando existir
                 msg_key = f"{msg_selecionada}_multi" if f"{msg_selecionada}_multi" in mensagens else msg_selecionada
                 msg = mensagens.get(msg_key, mensagens.get(msg_selecionada, "Mensagem padrão não encontrada."))
-
-                # Verificar se a mensagem precisa de empresas com CNPJ
-                if empresas_info and '{empresas_cnpj}' in msg:
-                    # Formatar lista de empresas com CNPJ
-                    lista_empresas_cnpj = []
-                    for emp in empresas_info:
-                        cnpj_emp = emp.get('cnpj', '')
-                        if cnpj_emp:
-                            try:
-                                cnpj_formatado = formatar_cnpj(cnpj_emp)
-                            except ValueError:
-                                cnpj_formatado = cnpj_emp
-                            lista_empresas_cnpj.append(f". {emp['empresa']}, CNPJ {cnpj_formatado}")
-                        else:
-                            lista_empresas_cnpj.append(f". {emp['empresa']}")
-                    empresas_cnpj_str = "\n".join(lista_empresas_cnpj)
-                    try:
-                        msg = msg.format(empresas_cnpj=empresas_cnpj_str, competencia=competencia if competencia else "")
-                    except KeyError:
-                        pass
-                else:
-                    # Formato padrão sem CNPJ
-                    lista_empresas = "\n".join([f". {emp}" for emp in nomes_empresas])
-                    # Tentar formatar com lista_empresas e competência, se falhar, enviar sem formatação
-                    try:
-                        if competencia:
-                            msg = msg.format(empresas=lista_empresas, competencia=competencia)
-                        else:
-                            msg = msg.format(empresas=lista_empresas)
-                    except KeyError:
-                        pass
             else:
-                # Uma única empresa
                 msg = mensagens.get(msg_selecionada, "Mensagem padrão não encontrada.")
-                nome_unico = nomes_empresas[0] if nomes_empresas else ""
 
-                # Verificar se a mensagem precisa de CNPJ
-                if empresas_info and '{cnpj}' in msg:
-                    cnpj_emp = empresas_info[0].get('cnpj', '') if empresas_info else ''
+            # Monta as variáveis disponíveis para a mensagem
+            valores = {
+                'competencia': competencia if competencia else "",
+                'nome': nomes_empresas[0] if nomes_empresas else "",
+            }
+
+            # Colunas extras do Excel viram variáveis (usa a 1ª empresa do contato).
+            # Ex.: coluna "Porte atual" -> {porte_atual}
+            if empresas_info:
+                primeira = empresas_info[0]
+                for chave, valor in primeira.items():
+                    if chave in ('codigo', 'empresa'):
+                        continue
+                    valores[chave] = valor if valor is not None else ""
+                cnpj_emp = primeira.get('cnpj', '')
+                if cnpj_emp:
+                    try:
+                        valores['cnpj'] = formatar_cnpj(cnpj_emp)
+                    except ValueError:
+                        valores['cnpj'] = cnpj_emp
+
+            # Lista de empresas (com e sem CNPJ) para as mensagens _multi
+            valores['empresas'] = "\n".join([f". {emp}" for emp in nomes_empresas])
+            if empresas_info:
+                lista_empresas_cnpj = []
+                for emp in empresas_info:
+                    cnpj_emp = emp.get('cnpj', '')
                     if cnpj_emp:
                         try:
-                            cnpj_formatado = formatar_cnpj(cnpj_emp)
+                            cnpj_fmt = formatar_cnpj(cnpj_emp)
                         except ValueError:
-                            cnpj_formatado = cnpj_emp
+                            cnpj_fmt = cnpj_emp
+                        lista_empresas_cnpj.append(f". {emp['empresa']}, CNPJ {cnpj_fmt}")
                     else:
-                        cnpj_formatado = ''
-                    try:
-                        msg = msg.format(nome=nome_unico, cnpj=cnpj_formatado, competencia=competencia if competencia else "")
-                    except KeyError:
-                        pass
-                else:
-                    # Tentar formatar com nome e competência, se falhar, enviar sem formatação
-                    try:
-                        if competencia:
-                            msg = msg.format(nome=nome_unico, competencia=competencia)
-                        else:
-                            msg = msg.format(nome=nome_unico)
-                    except KeyError:
-                        pass
+                        lista_empresas_cnpj.append(f". {emp['empresa']}")
+                valores['empresas_cnpj'] = "\n".join(lista_empresas_cnpj)
+
+                # Bloco pronto com uma linha por empresa, útil quando o contato
+                # responde por várias empresas com portes diferentes.
+                linhas_porte = []
+                for emp in empresas_info:
+                    partes = [f". {emp['empresa']}"]
+                    if emp.get('porte_atual'):
+                        partes.append(f"Porte atual: {emp['porte_atual']}")
+                    if emp.get('porte_pelo_faturamento'):
+                        partes.append(f"Porte pelo faturamento: {emp['porte_pelo_faturamento']}")
+                    linhas_porte.append(" | ".join(partes))
+                valores['empresas_porte'] = "\n".join(linhas_porte)
+
+            msg = formatar_tolerante(msg, valores)
     return msg
 
 # Funções de Interface
