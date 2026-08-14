@@ -1,0 +1,830 @@
+[
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/company/contact/6a7dcc33e972ae16306b7c8e",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:07:39.112Z",
+    "status": 200,
+    "resposta": "{\"id\":\"6a7dcc33e972ae16306b7c8e\",\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\",\"phone_number\":5524999877658,\"company\":\"6418e03fe478c70006b05005\",\"customer_user_data\":{\"customer_list\":[],\"company_department_list\":[]},\"collaborators\":[\"6418e03fe478c70006b05047\",\"6418e03fe478c70006b05049\",\"6863dcc6fcea178564f1da16\",\"65784cf97c40e80006caa968\",\"677fd987e433f0a1036d8b13\",\"67f51d17abe51ce6ec62247f\",\"6418e074e478c70006b0522b\",\"6984ec665d04ceac93ed3228\",\"683f54cdfffa8a76fa079cf7\",\"69d3bfb0b8c656ce06432cd4\",\"6a624208923f2f095b16b577\",\"678f8038e433f0a103930090\",\"6418e07583c669000841c7f0\",\"6418e07583c669000841c7f6\",\"6418e03fe478c70006b0504b\",\"6418e075e478c70006b05265\",\"66cf761491eec2bc63db16c0\",\"66e894acb233839f51b8bad5\",\"6418e075e478c70006b0523b\",\"664f47475130429ab75ebf3a\",\"665600e9d1c6922c2fe1b046\",\"65940cb59c9edb0008e9b0ac\",\"6548dd8e5af3340006e32fbf\",\"697cf7fac6ac2896d1452aa1\",\"6418e07583c669000841c80d\",\"6937303e8a4a042c54b8c1fb\",\"64a482fb0feba600069f0135\",\"69971ecdcea8eb45850baf96\",\"65649bf746c5550006e825a1\",\"66608c699d63a3af6d0f6bb5\",\"6418e07583c669000841c7f8\",\"65d355901e9b7351d7891c92\",\"6418e07483c669000841c7cd\",\"68640c4df88577ad269afc37\",\"67b5beaeff9ea3a40aa6bed5\",\"67e1703a58a6a0155b66a0a2\",\"6418e07583c669000841c7fc\",\"6418e07583c669000841c811\",\"69a6037c14d9a5c733e4501c\"],\"groups\":[],\"created_at\":\"2026-08-13T13:52:51.402Z\",\"updated_at\":\"2026-08-13T14:03:29.524Z\",\"has_customer_with_bot_enabled\":false,\"has_default_department\":false}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/6a7dcc33e972ae16306b7c8e/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:07:39.501Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/6a7dcc33e972ae16306b7c8e/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:07:39.503Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dceb1f1c8ac70c6c714dd\",\"_id\":\"6a7dceb1f1c8ac70c6c714dd\",\"external_id\":\"true_194781229662384@lid_6a7dceb1f1c8ac70c6c714dd\",\"uuid\":\"8d371161-0519-4f9b-87f2-e89793e4277a\",\"created_at\":\"2026-08-13T14:03:29.512Z\",\"received_at\":\"2026-08-13T14:03:29.493Z\",\"updated_at\":\"2026-08-13T14:03:33.265Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"ola\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"content_history_list\":[],\"archived\":false,\"internal_message\":false}],\"totalDocs\":1,\"limit\":30,\"totalPages\":1,\"page\":1,\"pagingCounter\":1,\"hasPrevPage\":false,\"hasNextPage\":false,\"prevPage\":null,\"nextPage\":null,\"pages\":1,\"total\":1}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/messenger-admin/company/user/transfer/6a7dcc33e972ae16306b7c8e?active=true",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:07:39.503Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"_id\":\"6863dcc6fcea178564f1da16\",\"email\":\"annacbrodrigues.canellaesantos@gmail.com\",\"name\":\"Carol - Setor Pessoal\",\"id\":\"6863dcc6fcea178564f1da16\"},{\"_id\":\"65784cf97c40e80006caa968\",\"name\":\"Aline Meireles - Setor Financeiro\",\"email\":\"aline.canellaesantos@gmail.com\",\"id\":\"65784cf97c40e80006caa968\"},{\"_id\":\"677fd987e433f0a1036d8b13\",\"email\":\"julia.canellaesantos@gmail.com\",\"name\":\"Julia Alves - Setor Fiscal\",\"id\":\"677fd987e433f0a1036d8b13\"},{\"_id\":\"67f51d17abe51ce6ec62247f\",\"email\":\"vanessacler.canellaesantos@gmail.com\",\"name\":\"Vanessa Cler - Setor Fiscal\",\"id\":\"67f51d17abe51ce6ec62247f\"},{\"_id\":\"6418e074e478c70006b0522b\",\"name\":\"Laís Almeida - Setor Pessoal\",\"email\":\"laisalmeida.canellaesantos@gmail.com\",\"id\":\"6418e074e478c70006b0522b\"},{\"_id\":\"6984ec665d04ceac93ed3228\",\"email\":\"neiva.vasconcelos.canellaesantos@gmail.com\",\"name\":\"Neiva Beatriz da Silveira Vasconcelos\",\"id\":\"6984ec665d04ceac93ed3228\"},{\"_id\":\"683f54cdfffa8a76fa079cf7\",\"email\":\"rodrigoalves.canellaesantos@gmail.com\",\"name\":\"Rodrigo - Setor Fiscal\",\"id\":\"683f54cdfffa8a76fa079cf7\"},{\"_id\":\"69d3bfb0b8c656ce06432cd4\",\"email\":\"pollyana.amorim.canellaesantos@gmail.com\",\"name\":\"Pollyana do Nascimento Amorim\",\"id\":\"69d3bfb0b8c656ce06432cd4\"},{\"_id\":\"6a624208923f2f095b16b577\",\"email\":\"cristiane.canellaesantos@gmail.com\",\"name\":\"CRISTIANE VALADÃO DE ALMEIDA\",\"id\":\"6a624208923f2f095b16b577\"},{\"_id\":\"678f8038e433f0a103930090\",\"email\":\"arthurbrito.canellaesantos@gmail.com\",\"name\":\"Canella & Santos - Comunicação 2\",\"id\":\"678f8038e433f0a103930090\"},{\"_id\":\"6418e07583c669000841c7f0\",\"name\":\"Levi Canella\",\"email\":\"levicanella@gmail.com\",\"id\":\"6418e07583c669000841c7f0\"},{\"_id\":\"6418e07583c669000841c7f6\",\"name\":\"Cataryna Lopes - Soluções Estratégicas\",\"email\":\"catarynacanella@gmail.com\",\"id\":\"6418e07583c669000841c7f6\"},{\"_id\":\"6418e03fe478c70006b0504b\",\"name\":\"GERENTE\",\"email\":\"suporte@canellaesantos.com.br\",\"id\":\"6418e03fe478c70006b0504b\"},{\"_id\":\"6418e075e478c70006b05265\",\"name\":\"Josiele Rezende - Gerência Co"
+  },
+  {
+    "via": "xhr",
+    "metodo": "POST",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/conversation/6a7dcc33e972ae16306b7c8e/text",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{\"uuid\":\"5386ab04-23b0-4141-afc4-8d210505c17f\",\"content\":\"teste\",\"phone_number\":5524999877658,\"internal_message\":false}",
+    "quando": "2026-08-13T14:07:42.795Z",
+    "status": 200,
+    "resposta": "{\"id\":\"6a7dcfb06e3a03a6ca3e233e\",\"_id\":\"6a7dcfb06e3a03a6ca3e233e\",\"company\":\"6418e03fe478c70006b05005\",\"external_id\":\"true_5524999877658@c.us_6a7dcfb06e3a03a6ca3e233e\",\"external_id_key\":\"5524999877658@c.us_6a7dcfb06e3a03a6ca3e233e\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"status\":\"SENT\",\"content\":\"teste\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\"},\"company_contact\":{\"id\":\"6a7dcc33e972ae16306b7c8e\",\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\",\"phone_number\":5524999877658,\"company\":\"6418e03fe478c70006b05005\",\"customer_user_data\":{\"customer_list\":[],\"company_department_list\":[]},\"collaborators\":[\"6418e03fe478c70006b05047\",\"6418e03fe478c70006b05049\",\"6863dcc6fcea178564f1da16\",\"65784cf97c40e80006caa968\",\"677fd987e433f0a1036d8b13\",\"67f51d17abe51ce6ec62247f\",\"6418e074e478c70006b0522b\",\"6984ec665d04ceac93ed3228\",\"683f54cdfffa8a76fa079cf7\",\"69d3bfb0b8c656ce06432cd4\",\"6a624208923f2f095b16b577\",\"678f8038e433f0a103930090\",\"6418e07583c669000841c7f0\",\"6418e07583c669000841c7f6\",\"6418e03fe478c70006b0504b\",\"6418e075e478c70006b05265\",\"66cf761491eec2bc63db16c0\",\"66e894acb233839f51b8bad5\",\"6418e075e478c70006b0523b\",\"664f47475130429ab75ebf3a\",\"665600e9d1c6922c2fe1b046\",\"65940cb59c9edb0008e9b0ac\",\"6548dd8e5af3340006e32fbf\",\"697cf7fac6ac2896d1452aa1\",\"6418e07583c669000841c80d\",\"6937303e8a4a042c54b8c1fb\",\"64a482fb0feba600069f0135\",\"69971ecdcea8eb45850baf96\",\"65649bf746c5550006e825a1\",\"66608c699d63a3af6d0f6bb5\",\"6418e07583c669000841c7f8\",\"65d355901e9b7351d7891c92\",\"6418e07483c669000841c7cd\",\"68640c4df88577ad269afc37\",\"67b5beaeff9ea3a40aa6bed5\",\"67e1703a58a6a0155b66a0a2\",\"6418e07583c669000841c7fc\",\"6418e07583c669000841c811\",\"69a6037c14d9a5c733e4501c\"],\"groups\":[],\"created_at\":\"2026-08-13T13:52:51.402Z\",\"updated_at\":\"2026-08-13T14:03:29.524Z\",\"__v\":0},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"phone_number\":5524999877658,\"uuid\":\"5386ab04-23b0-4141-"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/6a7dcc33e972ae16306b7c8e/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:07:46.082Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/company/contact/67b71fa7dca30e3d2a697214",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:07:48.654Z",
+    "status": 200,
+    "resposta": "{\"id\":\"67b71fa7dca30e3d2a697214\",\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \",\"company\":\"6418e03fe478c70006b05005\",\"collaborators\":[],\"is_group\":true,\"group_id\":\"120363404926085233@g.us\",\"groups\":[],\"created_at\":\"2025-02-20T12:27:19.502Z\",\"updated_at\":\"2026-08-12T19:12:10.773Z\",\"collaborators_updated_at\":\"2026-08-12T19:12:10.742Z\",\"has_customer_with_bot_enabled\":false,\"has_default_department\":false}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/67b71fa7dca30e3d2a697214/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:07:49.014Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/groups/67b71fa7dca30e3d2a697214/participants",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:07:49.016Z",
+    "status": 200,
+    "resposta": "[{\"_id\":\"67a4ce56c87246b447b9cc6b\",\"name\":\"102 - ARTHUR CANELLA & SANTOS\",\"phone_number\":5524999625043,\"company\":{\"_id\":\"6418e03fe478c70006b05005\",\"name\":\"CANELLA & SANTOS CONTABILIDADE EIRELI\"},\"external_image_url\":\"https://pps.whatsapp.net/v/t61.24694-24/473406658_1233377481687334_8354036541096263606_n.jpg?ccb=11-4&oh=01_Q5AaIYVoiavoYo9PbNjdjW0zCHOdbH365Ur95n1OkmsBXbYh&oe=67F8EE37&_nc_sid=5e03e0&_nc_cat=104\",\"id\":\"67a4ce56c87246b447b9cc6b\"}]"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/67b71fa7dca30e3d2a697214/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:07:49.017Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7cc582bdca2d2a0df0ff2f\",\"_id\":\"6a7cc582bdca2d2a0df0ff2f\",\"external_id\":\"true_120363404926085233@g.us_6a7cc582bdca2d2a0df0ff2f_199493412765777@lid\",\"uuid\":\"ff672e9b-c46c-416a-8626-a0f083976fac\",\"created_at\":\"2026-08-12T19:12:02.214Z\",\"received_at\":\"2026-08-12T19:12:02.187Z\",\"updated_at\":\"2026-08-12T19:19:34.322Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"Prezado(a) *CANELLA E SANTOS*,\\n \\nApós análise do faturamento da sua empresa CANELLA E SANTOS CONTABILIDADE EIRELI ME 06.310.711/0001-49, identificamos a necessidade de *adequação do enquadramento como EPP - Pequeno Porte perante a Junta Comercial*, de acordo com a legislação vigente e com o porte correspondente ao faturamento efetivamente auferido.\\n \\nPara manter a empresa regular e evitar possíveis *penalidades, inconsistências cadastrais ou futuras exigências dos órgãos competentes*, nossa equipe realizará o procedimento de regularização.\\n \\nO valor do serviço é de *R$ 300,00*, conforme pagamento realizado via pix.\\n \\nPix: financeiro@canellaesantos.com.br\\n \\nImportante destacar que *a alteração do porte, por si só, não representa aumento de impostos*. Trata-se de uma adequação cadastral e legal para que o enquadramento da empresa esteja compatível com seu faturamento.\\n \\nPermanecemos à disposição para quaisquer esclarecimentos.\\n \\nAtenciosamente,\\n \\nLegalização,\\nCanella & Santos Contabilidade Consultiva.\",\"status\":\"VIEWED\",\"group_id\":\"120363404926085233@g.us\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7cc58ae59a67e73b4579e6\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-12T19:12:02.187Z\",\"created_at\":\"2026-08-12T19:12:10.552Z\",\"company_user\":{\"name\":\"Canella & Sant"
+  },
+  {
+    "via": "xhr",
+    "metodo": "POST",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/conversation/67b71fa7dca30e3d2a697214/text",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{\"uuid\":\"79df477a-4556-44e8-a889-23da5dfe4070\",\"content\":\"teste\",\"group_id\":\"120363404926085233@g.us\",\"internal_message\":false}",
+    "quando": "2026-08-13T14:07:52.837Z",
+    "status": 200,
+    "resposta": "{\"id\":\"6a7dcfba9e4b85b754654af1\",\"_id\":\"6a7dcfba9e4b85b754654af1\",\"company\":\"6418e03fe478c70006b05005\",\"external_id\":\"true_120363404926085233@g.us_6a7dcfba9e4b85b754654af1_5524999212350@c.us)\",\"external_id_key\":\"120363404926085233@g.us_6a7dcfba9e4b85b754654af1\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"status\":\"SENT\",\"content\":\"teste\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\"},\"company_contact\":{\"id\":\"67b71fa7dca30e3d2a697214\",\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \",\"company\":\"6418e03fe478c70006b05005\",\"collaborators\":[],\"is_group\":true,\"group_id\":\"120363404926085233@g.us\",\"groups\":[],\"created_at\":\"2025-02-20T12:27:19.502Z\",\"updated_at\":\"2026-08-12T19:12:10.773Z\",\"__v\":0,\"collaborators_updated_at\":\"2026-08-12T19:12:10.742Z\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"group_id\":\"120363404926085233@g.us\",\"uuid\":\"79df477a-4556-44e8-a889-23da5dfe4070\",\"received_at\":\"2026-08-13T14:07:54.468Z\",\"internal_message\":false,\"created_at\":\"2026-08-13T14:07:54.501Z\",\"updated_at\":\"2026-08-13T14:07:54.501Z\",\"content_history_list\":[],\"group_message_status\":[],\"__v\":0}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/groups/67b71fa7dca30e3d2a697214/participants",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:07:53.388Z",
+    "status": 200,
+    "resposta": "[{\"_id\":\"67a4ce56c87246b447b9cc6b\",\"name\":\"102 - ARTHUR CANELLA & SANTOS\",\"phone_number\":5524999625043,\"company\":{\"_id\":\"6418e03fe478c70006b05005\",\"name\":\"CANELLA & SANTOS CONTABILIDADE EIRELI\"},\"external_image_url\":\"https://pps.whatsapp.net/v/t61.24694-24/473406658_1233377481687334_8354036541096263606_n.jpg?ccb=11-4&oh=01_Q5AaIYVoiavoYo9PbNjdjW0zCHOdbH365Ur95n1OkmsBXbYh&oe=67F8EE37&_nc_sid=5e03e0&_nc_cat=104\",\"id\":\"67a4ce56c87246b447b9cc6b\"}]"
+  },
+  {
+    "via": "xhr",
+    "metodo": "POST",
+    "url": "https://api.gestta.com.br/attendance-core/attendance/disconsider",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{\"company_contact\":\"67b71fa7dca30e3d2a697214\"}",
+    "quando": "2026-08-13T14:08:00.478Z",
+    "status": 200,
+    "resposta": "{\"_id\":\"6a7dcfc272e069ab081764cb\",\"company\":\"6418e03fe478c70006b05005\",\"company_user\":\"66e894acb233839f51b8bad5\",\"company_contact\":\"67b71fa7dca30e3d2a697214\",\"started_at\":\"2026-08-13T14:07:54.468Z\",\"created_at\":\"2026-08-13T14:08:02.262Z\",\"company_user_data\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\",\"partner_config\":{\"permissions\":{\"setup\":true,\"service_request_view_others\":true,\"service_request_evaluation\":true,\"service_request_delete\":true}},\"company_department_list\":[\"6418e07383c669000841c76e\",\"6418e07383c669000841c78d\",\"6418e074e478c70006b051f3\",\"644ac6a37e0947000626cc58\"]},\"created_by_data\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\",\"partner_config\":{\"permissions\":{\"setup\":true,\"service_request_view_others\":true,\"service_request_evaluation\":true,\"service_request_delete\":true}},\"company_department_list\":[\"6418e07383c669000841c76e\",\"6418e07383c669000841c78d\",\"6418e074e478c70006b051f3\",\"644ac6a37e0947000626cc58\"]},\"created_by\":\"66e894acb233839f51b8bad5\",\"type\":\"DISCONSIDER\",\"mention_list\":[],\"finished_at\":\"2026-08-13T14:08:03.324Z\",\"statistics\":{\"duration\":{\"between_first_and_last_message\":0,\"attendance\":1,\"conversation\":7}}}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/groups/67b71fa7dca30e3d2a697214/participants",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:01.098Z",
+    "status": 200,
+    "resposta": "[{\"_id\":\"67a4ce56c87246b447b9cc6b\",\"name\":\"102 - ARTHUR CANELLA & SANTOS\",\"phone_number\":5524999625043,\"company\":{\"_id\":\"6418e03fe478c70006b05005\",\"name\":\"CANELLA & SANTOS CONTABILIDADE EIRELI\"},\"external_image_url\":\"https://pps.whatsapp.net/v/t61.24694-24/473406658_1233377481687334_8354036541096263606_n.jpg?ccb=11-4&oh=01_Q5AaIYVoiavoYo9PbNjdjW0zCHOdbH365Ur95n1OkmsBXbYh&oe=67F8EE37&_nc_sid=5e03e0&_nc_cat=104\",\"id\":\"67a4ce56c87246b447b9cc6b\"}]"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/67b71fa7dca30e3d2a697214/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:01.099Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dcfba9e4b85b754654af1\",\"_id\":\"6a7dcfba9e4b85b754654af1\",\"external_id\":\"true_120363404926085233@g.us_6a7dcfba9e4b85b754654af1_5524999212350@c.us)\",\"uuid\":\"79df477a-4556-44e8-a889-23da5dfe4070\",\"created_at\":\"2026-08-13T14:07:54.501Z\",\"received_at\":\"2026-08-13T14:07:54.468Z\",\"updated_at\":\"2026-08-13T14:08:02.315Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"SENT\",\"group_id\":\"120363404926085233@g.us\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc272e069ab081764cb\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:07:54.468Z\",\"created_at\":\"2026-08-13T14:08:02.262Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"}},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7cc582bdca2d2a0df0ff2f\",\"_id\":\"6a7cc582bdca2d2a0df0ff2f\",\"external_id\":\"true_120363404926085233@g.us_6a7cc582bdca2d2a0df0ff2f_199493412765777@lid\",\"uuid\":\"ff672e9b-c46c-416a-8626-a0f083976fac\",\"created_at\":\"2026-08-12T19:12:02.214Z\",\"received_at\":\"2026-08-12T19:12:02.187Z\",\"updated_at\":\"2026-08-12T19:19:34.322Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"Prezado(a) *CANELLA E SANTOS*,\\n \\nApós análise do faturamento da sua empresa CANELLA E SANTOS CONTABILIDADE EIRELI ME 06.310.711/0001-49, identificamos a necessidade de *adequação do enquadramento como EPP - Pequeno Porte perante a Junta Comercial*, de acordo com a legislação vigente e com o porte correspondente ao faturamento efetivamente auferido.\\n \\nPara manter a empresa regular e evitar possíveis *penalidades, inconsistências cadastrais ou"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/67b71fa7dca30e3d2a697214/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:02.567Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dcfba9e4b85b754654af1\",\"_id\":\"6a7dcfba9e4b85b754654af1\",\"external_id\":\"true_120363404926085233@g.us_6a7dcfba9e4b85b754654af1_5524999212350@c.us)\",\"uuid\":\"79df477a-4556-44e8-a889-23da5dfe4070\",\"created_at\":\"2026-08-13T14:07:54.501Z\",\"received_at\":\"2026-08-13T14:07:54.468Z\",\"updated_at\":\"2026-08-13T14:08:03.513Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"SENT\",\"group_id\":\"120363404926085233@g.us\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc272e069ab081764cb\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:07:54.468Z\",\"created_at\":\"2026-08-13T14:08:02.262Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"finished_at\":\"2026-08-13T14:08:03.324Z\",\"last_message\":true},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7cc582bdca2d2a0df0ff2f\",\"_id\":\"6a7cc582bdca2d2a0df0ff2f\",\"external_id\":\"true_120363404926085233@g.us_6a7cc582bdca2d2a0df0ff2f_199493412765777@lid\",\"uuid\":\"ff672e9b-c46c-416a-8626-a0f083976fac\",\"created_at\":\"2026-08-12T19:12:02.214Z\",\"received_at\":\"2026-08-12T19:12:02.187Z\",\"updated_at\":\"2026-08-12T19:19:34.322Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"Prezado(a) *CANELLA E SANTOS*,\\n \\nApós análise do faturamento da sua empresa CANELLA E SANTOS CONTABILIDADE EIRELI ME 06.310.711/0001-49, identificamos a necessidade de *adequação do enquadramento como EPP - Pequeno Porte perante a Junta Comercial*, de acordo com a legislação vigente e com o porte correspondente ao faturamento efetivamente auferido.\\n \\nPara manter a empresa regular e"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/67b71fa7dca30e3d2a697214/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:08:02.567Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/all",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:02.568Z",
+    "status": 200,
+    "resposta": "[{\"_id\":\"6a7dceb12e748dc92af4611d\",\"type\":\"WHATSAPP\",\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\",\"phone_number\":5524999877658,\"company\":\"6418e03fe478c70006b05005\",\"collaborators\":[\"6418e03fe478c70006b05047\",\"6418e03fe478c70006b05049\",\"6863dcc6fcea178564f1da16\",\"65784cf97c40e80006caa968\",\"677fd987e433f0a1036d8b13\",\"67f51d17abe51ce6ec62247f\",\"6418e074e478c70006b0522b\",\"6984ec665d04ceac93ed3228\",\"683f54cdfffa8a76fa079cf7\",\"69d3bfb0b8c656ce06432cd4\",\"6a624208923f2f095b16b577\",\"678f8038e433f0a103930090\",\"6418e07583c669000841c7f0\",\"6418e07583c669000841c7f6\",\"6418e03fe478c70006b0504b\",\"6418e075e478c70006b05265\",\"66cf761491eec2bc63db16c0\",\"66e894acb233839f51b8bad5\",\"6418e075e478c70006b0523b\",\"664f47475130429ab75ebf3a\",\"665600e9d1c6922c2fe1b046\",\"65940cb59c9edb0008e9b0ac\",\"6548dd8e5af3340006e32fbf\",\"697cf7fac6ac2896d1452aa1\",\"6418e07583c669000841c80d\",\"6937303e8a4a042c54b8c1fb\",\"64a482fb0feba600069f0135\",\"69971ecdcea8eb45850baf96\",\"65649bf746c5550006e825a1\",\"66608c699d63a3af6d0f6bb5\",\"6418e07583c669000841c7f8\",\"65d355901e9b7351d7891c92\",\"6418e07483c669000841c7cd\",\"68640c4df88577ad269afc37\",\"67b5beaeff9ea3a40aa6bed5\",\"67e1703a58a6a0155b66a0a2\",\"6418e07583c669000841c7fc\",\"6418e07583c669000841c811\",\"69a6037c14d9a5c733e4501c\"],\"id\":\"6a7dcc33e972ae16306b7c8e\"},\"__v\":0,\"last_message\":{\"id\":\"6a7dcfb06e3a03a6ca3e233e\",\"_id\":\"6a7dcfb06e3a03a6ca3e233e\",\"company\":\"6418e03fe478c70006b05005\",\"external_id\":\"true_5524999877658@c.us_6a7dcfb06e3a03a6ca3e233e\",\"external_id_key\":\"5524999877658@c.us_6a7dcfb06e3a03a6ca3e233e\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"status\":\"PENDING\",\"content\":\"teste\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"phone_number\":5524999877658,\"uuid\":\"5386ab04-23b0-4141-afc4-8d210505c17f\",\"received_at\":\"2026-08-13T14:07:44.437Z\",\"internal_message\":false,\"create"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/6a7dcc33e972ae16306b7c8e/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:08:04.160Z",
+    "status": 200,
+    "resposta": "{}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/company/contact/6a7dcc33e972ae16306b7c8e",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:04.474Z",
+    "status": 200,
+    "resposta": "{\"id\":\"6a7dcc33e972ae16306b7c8e\",\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\",\"phone_number\":5524999877658,\"company\":\"6418e03fe478c70006b05005\",\"customer_user_data\":{\"customer_list\":[],\"company_department_list\":[]},\"collaborators\":[\"6418e03fe478c70006b05047\",\"6418e03fe478c70006b05049\",\"6863dcc6fcea178564f1da16\",\"65784cf97c40e80006caa968\",\"677fd987e433f0a1036d8b13\",\"67f51d17abe51ce6ec62247f\",\"6418e074e478c70006b0522b\",\"6984ec665d04ceac93ed3228\",\"683f54cdfffa8a76fa079cf7\",\"69d3bfb0b8c656ce06432cd4\",\"6a624208923f2f095b16b577\",\"678f8038e433f0a103930090\",\"6418e07583c669000841c7f0\",\"6418e07583c669000841c7f6\",\"6418e03fe478c70006b0504b\",\"6418e075e478c70006b05265\",\"66cf761491eec2bc63db16c0\",\"66e894acb233839f51b8bad5\",\"6418e075e478c70006b0523b\",\"664f47475130429ab75ebf3a\",\"665600e9d1c6922c2fe1b046\",\"65940cb59c9edb0008e9b0ac\",\"6548dd8e5af3340006e32fbf\",\"697cf7fac6ac2896d1452aa1\",\"6418e07583c669000841c80d\",\"6937303e8a4a042c54b8c1fb\",\"64a482fb0feba600069f0135\",\"69971ecdcea8eb45850baf96\",\"65649bf746c5550006e825a1\",\"66608c699d63a3af6d0f6bb5\",\"6418e07583c669000841c7f8\",\"65d355901e9b7351d7891c92\",\"6418e07483c669000841c7cd\",\"68640c4df88577ad269afc37\",\"67b5beaeff9ea3a40aa6bed5\",\"67e1703a58a6a0155b66a0a2\",\"6418e07583c669000841c7fc\",\"6418e07583c669000841c811\",\"69a6037c14d9a5c733e4501c\"],\"groups\":[],\"created_at\":\"2026-08-13T13:52:51.402Z\",\"updated_at\":\"2026-08-13T14:07:44.482Z\",\"has_customer_with_bot_enabled\":false,\"has_default_department\":false}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/6a7dcc33e972ae16306b7c8e/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:08:04.832Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/6a7dcc33e972ae16306b7c8e/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:04.833Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dcfb06e3a03a6ca3e233e\",\"_id\":\"6a7dcfb06e3a03a6ca3e233e\",\"external_id\":\"true_194781229662384@lid_6a7dcfb06e3a03a6ca3e233e\",\"uuid\":\"5386ab04-23b0-4141-afc4-8d210505c17f\",\"created_at\":\"2026-08-13T14:07:44.471Z\",\"received_at\":\"2026-08-13T14:07:44.437Z\",\"updated_at\":\"2026-08-13T14:07:47.135Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dceb1f1c8ac70c6c714dd\",\"_id\":\"6a7dceb1f1c8ac70c6c714dd\",\"external_id\":\"true_194781229662384@lid_6a7dceb1f1c8ac70c6c714dd\",\"uuid\":\"8d371161-0519-4f9b-87f2-e89793e4277a\",\"created_at\":\"2026-08-13T14:03:29.512Z\",\"received_at\":\"2026-08-13T14:03:29.493Z\",\"updated_at\":\"2026-08-13T14:03:33.265Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"ola\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"content_history_list\":[],\"archived\":false,\"internal_message\":false}],\"totalDocs\":2,\"limit\":30,\"totalPages\":1,\"page\":1,\"pagingCounter\":1,\"hasPrevPage\":false,\"hasNextPage\":false,\"prevPage\":null,\"nextPage\":null,\"pages\":1,\"total\":2}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/messenger-admin/company/user/transfer/6a7dcc33e972ae16306b7c8e?active=true",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:04.834Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"_id\":\"6863dcc6fcea178564f1da16\",\"email\":\"annacbrodrigues.canellaesantos@gmail.com\",\"name\":\"Carol - Setor Pessoal\",\"id\":\"6863dcc6fcea178564f1da16\"},{\"_id\":\"65784cf97c40e80006caa968\",\"name\":\"Aline Meireles - Setor Financeiro\",\"email\":\"aline.canellaesantos@gmail.com\",\"id\":\"65784cf97c40e80006caa968\"},{\"_id\":\"677fd987e433f0a1036d8b13\",\"email\":\"julia.canellaesantos@gmail.com\",\"name\":\"Julia Alves - Setor Fiscal\",\"id\":\"677fd987e433f0a1036d8b13\"},{\"_id\":\"67f51d17abe51ce6ec62247f\",\"email\":\"vanessacler.canellaesantos@gmail.com\",\"name\":\"Vanessa Cler - Setor Fiscal\",\"id\":\"67f51d17abe51ce6ec62247f\"},{\"_id\":\"6418e074e478c70006b0522b\",\"name\":\"Laís Almeida - Setor Pessoal\",\"email\":\"laisalmeida.canellaesantos@gmail.com\",\"id\":\"6418e074e478c70006b0522b\"},{\"_id\":\"6984ec665d04ceac93ed3228\",\"email\":\"neiva.vasconcelos.canellaesantos@gmail.com\",\"name\":\"Neiva Beatriz da Silveira Vasconcelos\",\"id\":\"6984ec665d04ceac93ed3228\"},{\"_id\":\"683f54cdfffa8a76fa079cf7\",\"email\":\"rodrigoalves.canellaesantos@gmail.com\",\"name\":\"Rodrigo - Setor Fiscal\",\"id\":\"683f54cdfffa8a76fa079cf7\"},{\"_id\":\"69d3bfb0b8c656ce06432cd4\",\"email\":\"pollyana.amorim.canellaesantos@gmail.com\",\"name\":\"Pollyana do Nascimento Amorim\",\"id\":\"69d3bfb0b8c656ce06432cd4\"},{\"_id\":\"6a624208923f2f095b16b577\",\"email\":\"cristiane.canellaesantos@gmail.com\",\"name\":\"CRISTIANE VALADÃO DE ALMEIDA\",\"id\":\"6a624208923f2f095b16b577\"},{\"_id\":\"678f8038e433f0a103930090\",\"email\":\"arthurbrito.canellaesantos@gmail.com\",\"name\":\"Canella & Santos - Comunicação 2\",\"id\":\"678f8038e433f0a103930090\"},{\"_id\":\"6418e07583c669000841c7f0\",\"name\":\"Levi Canella\",\"email\":\"levicanella@gmail.com\",\"id\":\"6418e07583c669000841c7f0\"},{\"_id\":\"6418e07583c669000841c7f6\",\"name\":\"Cataryna Lopes - Soluções Estratégicas\",\"email\":\"catarynacanella@gmail.com\",\"id\":\"6418e07583c669000841c7f6\"},{\"_id\":\"6418e03fe478c70006b0504b\",\"name\":\"GERENTE\",\"email\":\"suporte@canellaesantos.com.br\",\"id\":\"6418e03fe478c70006b0504b\"},{\"_id\":\"6418e075e478c70006b05265\",\"name\":\"Josiele Rezende - Gerência Co"
+  },
+  {
+    "via": "xhr",
+    "metodo": "POST",
+    "url": "https://api.gestta.com.br/attendance-core/attendance/disconsider",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{\"company_contact\":\"6a7dcc33e972ae16306b7c8e\"}",
+    "quando": "2026-08-13T14:08:07.998Z",
+    "status": 200,
+    "resposta": "{\"_id\":\"6a7dcfc970c0542fd4a2f80c\",\"company\":\"6418e03fe478c70006b05005\",\"company_user\":\"66e894acb233839f51b8bad5\",\"company_contact\":\"6a7dcc33e972ae16306b7c8e\",\"started_at\":\"2026-08-13T14:03:29.493Z\",\"created_at\":\"2026-08-13T14:08:09.640Z\",\"company_user_data\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\",\"partner_config\":{\"permissions\":{\"setup\":true,\"service_request_view_others\":true,\"service_request_evaluation\":true,\"service_request_delete\":true}},\"company_department_list\":[\"6418e07383c669000841c76e\",\"6418e07383c669000841c78d\",\"6418e074e478c70006b051f3\",\"644ac6a37e0947000626cc58\"]},\"created_by_data\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\",\"partner_config\":{\"permissions\":{\"setup\":true,\"service_request_view_others\":true,\"service_request_evaluation\":true,\"service_request_delete\":true}},\"company_department_list\":[\"6418e07383c669000841c76e\",\"6418e07383c669000841c78d\",\"6418e074e478c70006b051f3\",\"644ac6a37e0947000626cc58\"]},\"created_by\":\"66e894acb233839f51b8bad5\",\"type\":\"DISCONSIDER\",\"mention_list\":[],\"finished_at\":\"2026-08-13T14:08:09.770Z\",\"statistics\":{\"duration\":{\"between_first_and_last_message\":254,\"attendance\":0,\"conversation\":280}}}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/6a7dcc33e972ae16306b7c8e/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:08.386Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dcfb06e3a03a6ca3e233e\",\"_id\":\"6a7dcfb06e3a03a6ca3e233e\",\"external_id\":\"true_194781229662384@lid_6a7dcfb06e3a03a6ca3e233e\",\"uuid\":\"5386ab04-23b0-4141-afc4-8d210505c17f\",\"created_at\":\"2026-08-13T14:07:44.471Z\",\"received_at\":\"2026-08-13T14:07:44.437Z\",\"updated_at\":\"2026-08-13T14:08:09.786Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc970c0542fd4a2f80c\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"finished_at\":\"2026-08-13T14:08:09.770Z\",\"started_at\":\"2026-08-13T14:03:29.493Z\",\"created_at\":\"2026-08-13T14:08:09.640Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"type\":\"DISCONSIDER\",\"last_message\":true},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dceb1f1c8ac70c6c714dd\",\"_id\":\"6a7dceb1f1c8ac70c6c714dd\",\"external_id\":\"true_194781229662384@lid_6a7dceb1f1c8ac70c6c714dd\",\"uuid\":\"8d371161-0519-4f9b-87f2-e89793e4277a\",\"created_at\":\"2026-08-13T14:03:29.512Z\",\"received_at\":\"2026-08-13T14:03:29.493Z\",\"updated_at\":\"2026-08-13T14:08:09.644Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"ola\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc970c0542fd4a2f80c\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:03:29.493Z\",\"created_at\":\"2026-08"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/6a7dcc33e972ae16306b7c8e/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:08.597Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dcfb06e3a03a6ca3e233e\",\"_id\":\"6a7dcfb06e3a03a6ca3e233e\",\"external_id\":\"true_194781229662384@lid_6a7dcfb06e3a03a6ca3e233e\",\"uuid\":\"5386ab04-23b0-4141-afc4-8d210505c17f\",\"created_at\":\"2026-08-13T14:07:44.471Z\",\"received_at\":\"2026-08-13T14:07:44.437Z\",\"updated_at\":\"2026-08-13T14:08:09.786Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc970c0542fd4a2f80c\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"finished_at\":\"2026-08-13T14:08:09.770Z\",\"started_at\":\"2026-08-13T14:03:29.493Z\",\"created_at\":\"2026-08-13T14:08:09.640Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"type\":\"DISCONSIDER\",\"last_message\":true},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dceb1f1c8ac70c6c714dd\",\"_id\":\"6a7dceb1f1c8ac70c6c714dd\",\"external_id\":\"true_194781229662384@lid_6a7dceb1f1c8ac70c6c714dd\",\"uuid\":\"8d371161-0519-4f9b-87f2-e89793e4277a\",\"created_at\":\"2026-08-13T14:03:29.512Z\",\"received_at\":\"2026-08-13T14:03:29.493Z\",\"updated_at\":\"2026-08-13T14:08:09.644Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"ola\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc970c0542fd4a2f80c\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:03:29.493Z\",\"created_at\":\"2026-08"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/6a7dcc33e972ae16306b7c8e/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:08:08.598Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/messenger-admin/company/department",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:26.616Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"_id\":\"6418e07383c669000841c763\",\"company\":\"6418e03fe478c70006b05005\",\"name\":\"Patrimônio\",\"code\":\"DP 11\",\"external_id\":\"A38A562567984024B00B474E2596B575\",\"received_at\":\"2025-12-18T13:20:55.810Z\",\"default\":false,\"created_at\":\"2023-03-20T22:38:43.671Z\",\"updated_at\":\"2025-12-18T13:20:55.843Z\",\"id\":\"6418e07383c669000841c763\"},{\"_id\":\"6418e07383c669000841c76e\",\"company\":\"6418e03fe478c70006b05005\",\"name\":\"Controle - CND's\",\"code\":\"DP 08\",\"external_id\":\"2328E4AA081D4114886B7BCD98CFB1DC\",\"received_at\":\"2026-01-19T11:20:34.270Z\",\"default\":false,\"created_at\":\"2023-03-20T22:38:43.687Z\",\"updated_at\":\"2026-01-19T11:20:34.329Z\",\"id\":\"6418e07383c669000841c76e\"},{\"_id\":\"6418e07383c669000841c785\",\"company\":\"6418e03fe478c70006b05005\",\"name\":\"Relacionamento\",\"code\":\"DP 13\",\"external_id\":\"60AB428072B04561A454FE5CE061C599\",\"received_at\":\"2025-12-18T13:21:10.505Z\",\"default\":false,\"created_at\":\"2023-03-20T22:38:43.715Z\",\"updated_at\":\"2025-12-18T13:21:10.546Z\",\"id\":\"6418e07383c669000841c785\"},{\"_id\":\"6418e07383c669000841c78d\",\"company\":\"6418e03fe478c70006b05005\",\"name\":\"Registro de Empresas\",\"code\":\"DP 12\",\"external_id\":\"5595630C02914974844C354F25097325\",\"received_at\":\"2025-12-18T13:21:02.906Z\",\"default\":false,\"created_at\":\"2023-03-20T22:38:43.731Z\",\"updated_at\":\"2025-12-18T13:21:03.015Z\",\"id\":\"6418e07383c669000841c78d\"},{\"_id\":\"6418e074e478c70006b051f3\",\"company\":\"6418e03fe478c70006b05005\",\"name\":\"Legalização\",\"code\":\"DP 10\",\"external_id\":\"9F16D6434D394D18BFCA5EAD492AED98\",\"received_at\":\"2025-12-18T13:20:49.856Z\",\"default\":false,\"created_at\":\"2023-03-20T22:38:44.006Z\",\"updated_at\":\"2025-12-18T13:20:49.893Z\",\"id\":\"6418e074e478c70006b051f3\"},{\"_id\":\"644ac6a37e0947000626cc58\",\"company\":\"6418e03fe478c70006b05005\",\"name\":\"Administrativo\",\"code\":\"DP01\",\"external_id\":\"707D8F1B0E4246DA83C5BA5F60D18971\",\"received_at\":\"2023-05-20T17:31:36.772Z\",\"default\":true,\"created_at\":\"2023-04-27T19:01:55.214Z\",\"updated_at\":\"2023-05-20T17:31:36.907Z\",\"id\":\"644ac6a37e0947000626cc58\"},{\"_id\":\"644ac6a353"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/company/contact",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:26.617Z",
+    "status": 200,
+    "resposta": "[{\"_id\":\"642c16f3dcc89100064b1ccd\",\"company\":\"6418e03fe478c70006b05005\",\"name\":\"Claudia Suhett\",\"phone_number\":5524998267515,\"external_image_url\":\"https://pps.whatsapp.net/v/t61.24694-24/634316593_756099067220444_5902028104582205517_n.jpg?ccb=11-4&oh=01_Q5Aa3wER_Q9FCNCR5jDgC2X6O70LsG7VQtGz0fPvjjTkBwHaQw&oe=69A55B1A&_nc_sid=5e03e0&_nc_cat=104\",\"whatsapp_link_id\":\"49138787946729@lid\",\"customer_user\":{\"customer_list\":[]}},{\"_id\":\"642c7b672be7790007ef0aab\",\"company\":\"6418e03fe478c70006b05005\",\"name\":\"361/518/519/ 915/ 1020 - JANICE  #SOC #AMAR\",\"phone_number\":5524988160051,\"external_image_url\":\"https://pps.whatsapp.net/v/t61.24694-24/324792735_501885302019300_873981575473860080_n.jpg?ccb=11-4&oh=01_AdQECqoJ_pRZ-gaHKJhBWx9lan30q0FOc5QSiGueLYIBuA&oe=643920F9\",\"whatsapp_link_id\":\"191864913297537@lid\",\"customer_user\":{\"_id\":\"644983d553369400063ff65c\",\"name\":\"JANICE INES POSSIDENTE ROCHA\",\"customer_list\":[{\"_id\":\"644983d45391ac0007438d6e\",\"corporate_name\":\"MUNDO DOS COSMETICOS DE VOLTA REDONDA LTDA - ME\",\"name\":\"MUNDO DOS COSMETICOS DE VOLTA REDONDA LTDA - ME\"},{\"_id\":\"644986917e094700061e193f\",\"corporate_name\":\"PERFUMARIA DA VILA DE VOLTA REDONDA LTDA\",\"name\":\"PERFUMARIA DA VILA DE VOLTA REDONDA LTDA\"},{\"_id\":\"68827ff65159b7c0e92d24c9\",\"corporate_name\":\"JANICE INES POSSIDENTE ROCHA\",\"name\":\"JANICE INES POSSIDENTE ROCHA\"},{\"_id\":\"688784ff669785c782a190fe\",\"corporate_name\":\"F. POSSIDENTE ADMINISTRACAO DE BENS PROPRIOS LTDA\",\"name\":\"F. POSSIDENTE ADMINISTRACAO DE BENS PROPRIOS LTDA\"}]}},{\"_id\":\"642efd2c2016720006d52f23\",\"company\":\"6418e03fe478c70006b05005\",\"name\":\"Graziele Souza\",\"phone_number\":5524992587888,\"external_image_url\":\"https://pps.whatsapp.net/v/t61.24694-24/340538774_838045894284295_2071343347345502123_n.jpg?ccb=11-4&oh=01_AdTi0QDR89Z5v1PW0xcA7muz3lOFBTcPn5ELGY7r11x0_Q&oe=644A4F2D\",\"customer_user\":{\"customer_list\":[]}},{\"_id\":\"6434079972d2c00007153ed4\",\"company\":\"6418e03fe478c70006b05005\",\"name\":\"382 - JAQUELINE APARECIDA\",\"phone_number\":5524998397738,\"external_ima"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/company/contact/6a7dcc33e972ae16306b7c8e",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:33.085Z",
+    "status": 200,
+    "resposta": "{\"id\":\"6a7dcc33e972ae16306b7c8e\",\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\",\"phone_number\":5524999877658,\"company\":\"6418e03fe478c70006b05005\",\"customer_user_data\":{\"customer_list\":[],\"company_department_list\":[]},\"collaborators\":[],\"groups\":[],\"created_at\":\"2026-08-13T13:52:51.402Z\",\"updated_at\":\"2026-08-13T14:08:09.797Z\",\"collaborators_updated_at\":\"2026-08-13T14:08:09.765Z\",\"has_customer_with_bot_enabled\":false,\"has_default_department\":false}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/6a7dcc33e972ae16306b7c8e/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:08:33.417Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/6a7dcc33e972ae16306b7c8e/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:33.419Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dcfb06e3a03a6ca3e233e\",\"_id\":\"6a7dcfb06e3a03a6ca3e233e\",\"external_id\":\"true_194781229662384@lid_6a7dcfb06e3a03a6ca3e233e\",\"uuid\":\"5386ab04-23b0-4141-afc4-8d210505c17f\",\"created_at\":\"2026-08-13T14:07:44.471Z\",\"received_at\":\"2026-08-13T14:07:44.437Z\",\"updated_at\":\"2026-08-13T14:08:09.786Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc970c0542fd4a2f80c\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"finished_at\":\"2026-08-13T14:08:09.770Z\",\"started_at\":\"2026-08-13T14:03:29.493Z\",\"created_at\":\"2026-08-13T14:08:09.640Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"type\":\"DISCONSIDER\",\"last_message\":true},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dceb1f1c8ac70c6c714dd\",\"_id\":\"6a7dceb1f1c8ac70c6c714dd\",\"external_id\":\"true_194781229662384@lid_6a7dceb1f1c8ac70c6c714dd\",\"uuid\":\"8d371161-0519-4f9b-87f2-e89793e4277a\",\"created_at\":\"2026-08-13T14:03:29.512Z\",\"received_at\":\"2026-08-13T14:03:29.493Z\",\"updated_at\":\"2026-08-13T14:08:09.644Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"ola\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc970c0542fd4a2f80c\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:03:29.493Z\",\"created_at\":\"2026-08"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/messenger-admin/company/user/transfer/6a7dcc33e972ae16306b7c8e?active=true",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:33.419Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"_id\":\"6863dcc6fcea178564f1da16\",\"email\":\"annacbrodrigues.canellaesantos@gmail.com\",\"name\":\"Carol - Setor Pessoal\",\"id\":\"6863dcc6fcea178564f1da16\"},{\"_id\":\"65784cf97c40e80006caa968\",\"name\":\"Aline Meireles - Setor Financeiro\",\"email\":\"aline.canellaesantos@gmail.com\",\"id\":\"65784cf97c40e80006caa968\"},{\"_id\":\"677fd987e433f0a1036d8b13\",\"email\":\"julia.canellaesantos@gmail.com\",\"name\":\"Julia Alves - Setor Fiscal\",\"id\":\"677fd987e433f0a1036d8b13\"},{\"_id\":\"67f51d17abe51ce6ec62247f\",\"email\":\"vanessacler.canellaesantos@gmail.com\",\"name\":\"Vanessa Cler - Setor Fiscal\",\"id\":\"67f51d17abe51ce6ec62247f\"},{\"_id\":\"6418e074e478c70006b0522b\",\"name\":\"Laís Almeida - Setor Pessoal\",\"email\":\"laisalmeida.canellaesantos@gmail.com\",\"id\":\"6418e074e478c70006b0522b\"},{\"_id\":\"6984ec665d04ceac93ed3228\",\"email\":\"neiva.vasconcelos.canellaesantos@gmail.com\",\"name\":\"Neiva Beatriz da Silveira Vasconcelos\",\"id\":\"6984ec665d04ceac93ed3228\"},{\"_id\":\"683f54cdfffa8a76fa079cf7\",\"email\":\"rodrigoalves.canellaesantos@gmail.com\",\"name\":\"Rodrigo - Setor Fiscal\",\"id\":\"683f54cdfffa8a76fa079cf7\"},{\"_id\":\"69d3bfb0b8c656ce06432cd4\",\"email\":\"pollyana.amorim.canellaesantos@gmail.com\",\"name\":\"Pollyana do Nascimento Amorim\",\"id\":\"69d3bfb0b8c656ce06432cd4\"},{\"_id\":\"6a624208923f2f095b16b577\",\"email\":\"cristiane.canellaesantos@gmail.com\",\"name\":\"CRISTIANE VALADÃO DE ALMEIDA\",\"id\":\"6a624208923f2f095b16b577\"},{\"_id\":\"678f8038e433f0a103930090\",\"email\":\"arthurbrito.canellaesantos@gmail.com\",\"name\":\"Canella & Santos - Comunicação 2\",\"id\":\"678f8038e433f0a103930090\"},{\"_id\":\"6418e07583c669000841c7f0\",\"name\":\"Levi Canella\",\"email\":\"levicanella@gmail.com\",\"id\":\"6418e07583c669000841c7f0\"},{\"_id\":\"6418e07583c669000841c7f6\",\"name\":\"Cataryna Lopes - Soluções Estratégicas\",\"email\":\"catarynacanella@gmail.com\",\"id\":\"6418e07583c669000841c7f6\"},{\"_id\":\"6418e03fe478c70006b0504b\",\"name\":\"GERENTE\",\"email\":\"suporte@canellaesantos.com.br\",\"id\":\"6418e03fe478c70006b0504b\"},{\"_id\":\"6418e075e478c70006b05265\",\"name\":\"Josiele Rezende - Gerência Co"
+  },
+  {
+    "via": "xhr",
+    "metodo": "POST",
+    "url": "https://api.gestta.com.br/attendance-documents/file/6a7dcc33e972ae16306b7c8e",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "FormData{file=[FILE nome=logoCanella.png tipo=image/png bytes=49244]&company=6418e03fe478c70006b05005&caption=teste\n}",
+    "quando": "2026-08-13T14:08:51.429Z",
+    "status": 200,
+    "resposta": "{\"_id\":\"6a7dcff52fcfeef1db0cf864\",\"file_name\":\"logoCanella.png\",\"file_url\":\"https://api.gestta.com.br/attendance-documents/file/6a7dcc33e972ae16306b7c8e/6a7dcff52fcfeef1db0cf864\",\"content_type\":\"image/png\",\"caption\":\"teste\\r\\n\",\"size\":49244}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "POST",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/conversation/6a7dcc33e972ae16306b7c8e/file",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{\"uuid\":\"67b97087-d31c-4885-8082-8884f39e8ed3\",\"file_name\":\"logoCanella.png\",\"content_type\":\"image/png\",\"caption\":\"teste\\r\\n\",\"file_url\":\"https://api.gestta.com.br/attendance-documents/file/6a7dcc33e972ae16306b7c8e/6a7dcff52fcfeef1db0cf864\",\"_id\":\"6a7dcff52fcfeef1db0cf864\",\"internal_message\":false,\"mention_list\":[]}",
+    "quando": "2026-08-13T14:08:51.948Z",
+    "status": 200,
+    "resposta": "{\"id\":\"6a7dcff52fcfeef1db0cf864\",\"_id\":\"6a7dcff52fcfeef1db0cf864\",\"company\":\"6418e03fe478c70006b05005\",\"external_id\":\"true_5524999877658@c.us_6a7dcff52fcfeef1db0cf864\",\"external_id_key\":\"5524999877658@c.us_6a7dcff52fcfeef1db0cf864\",\"type\":\"OUTBOUND\",\"content_type\":\"LINK\",\"status\":\"PENDING\",\"content\":\"https://api.gestta.com.br/attendance-documents/file/6a7dcc33e972ae16306b7c8e/6a7dcff52fcfeef1db0cf864\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"id\":\"6a7dcc33e972ae16306b7c8e\",\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\",\"phone_number\":5524999877658,\"company\":\"6418e03fe478c70006b05005\",\"customer_user_data\":{\"customer_list\":[],\"company_department_list\":[]},\"collaborators\":[],\"groups\":[],\"created_at\":\"2026-08-13T13:52:51.402Z\",\"updated_at\":\"2026-08-13T14:08:09.797Z\",\"__v\":0,\"collaborators_updated_at\":\"2026-08-13T14:08:09.765Z\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"phone_number\":5524999877658,\"uuid\":\"67b97087-d31c-4885-8082-8884f39e8ed3\",\"received_at\":\"2026-08-13T14:08:53.595Z\",\"internal_message\":false,\"created_at\":\"2026-08-13T14:08:53.627Z\",\"updated_at\":\"2026-08-13T14:08:53.627Z\",\"content_history_list\":[],\"group_message_status\":[],\"__v\":0}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-documents/file/6a7dcc33e972ae16306b7c8e/6a7dcff52fcfeef1db0cf864/info",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:52.474Z",
+    "status": 200,
+    "resposta": "{\"_id\":\"6a7dcff52fcfeef1db0cf864\",\"file_name\":\"logoCanella.png\",\"owner\":\"6a7dcc33e972ae16306b7c8e\",\"company\":\"6418e03fe478c70006b05005\",\"content_type\":\"image/png\",\"caption\":\"teste\\r\\n\",\"size\":49244}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/6a7dcc33e972ae16306b7c8e/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:08:54.860Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/company/contact/67b71fa7dca30e3d2a697214",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:58.297Z",
+    "status": 200,
+    "resposta": "{\"id\":\"67b71fa7dca30e3d2a697214\",\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \",\"company\":\"6418e03fe478c70006b05005\",\"collaborators\":[],\"is_group\":true,\"group_id\":\"120363404926085233@g.us\",\"groups\":[],\"created_at\":\"2025-02-20T12:27:19.502Z\",\"updated_at\":\"2026-08-13T14:08:03.547Z\",\"collaborators_updated_at\":\"2026-08-13T14:08:03.253Z\",\"has_customer_with_bot_enabled\":false,\"has_default_department\":false}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/67b71fa7dca30e3d2a697214/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:08:58.642Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/groups/67b71fa7dca30e3d2a697214/participants",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:58.643Z",
+    "status": 200,
+    "resposta": "[{\"_id\":\"67a4ce56c87246b447b9cc6b\",\"name\":\"102 - ARTHUR CANELLA & SANTOS\",\"phone_number\":5524999625043,\"company\":{\"_id\":\"6418e03fe478c70006b05005\",\"name\":\"CANELLA & SANTOS CONTABILIDADE EIRELI\"},\"external_image_url\":\"https://pps.whatsapp.net/v/t61.24694-24/473406658_1233377481687334_8354036541096263606_n.jpg?ccb=11-4&oh=01_Q5AaIYVoiavoYo9PbNjdjW0zCHOdbH365Ur95n1OkmsBXbYh&oe=67F8EE37&_nc_sid=5e03e0&_nc_cat=104\",\"id\":\"67a4ce56c87246b447b9cc6b\"}]"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/67b71fa7dca30e3d2a697214/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:08:58.644Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dcfba9e4b85b754654af1\",\"_id\":\"6a7dcfba9e4b85b754654af1\",\"external_id\":\"true_120363404926085233@g.us_6a7dcfba9e4b85b754654af1_5524999212350@c.us)\",\"uuid\":\"79df477a-4556-44e8-a889-23da5dfe4070\",\"created_at\":\"2026-08-13T14:07:54.501Z\",\"received_at\":\"2026-08-13T14:07:54.468Z\",\"updated_at\":\"2026-08-13T14:08:03.513Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"SENT\",\"group_id\":\"120363404926085233@g.us\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc272e069ab081764cb\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:07:54.468Z\",\"created_at\":\"2026-08-13T14:08:02.262Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"finished_at\":\"2026-08-13T14:08:03.324Z\",\"last_message\":true},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7cc582bdca2d2a0df0ff2f\",\"_id\":\"6a7cc582bdca2d2a0df0ff2f\",\"external_id\":\"true_120363404926085233@g.us_6a7cc582bdca2d2a0df0ff2f_199493412765777@lid\",\"uuid\":\"ff672e9b-c46c-416a-8626-a0f083976fac\",\"created_at\":\"2026-08-12T19:12:02.214Z\",\"received_at\":\"2026-08-12T19:12:02.187Z\",\"updated_at\":\"2026-08-12T19:19:34.322Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"Prezado(a) *CANELLA E SANTOS*,\\n \\nApós análise do faturamento da sua empresa CANELLA E SANTOS CONTABILIDADE EIRELI ME 06.310.711/0001-49, identificamos a necessidade de *adequação do enquadramento como EPP - Pequeno Porte perante a Junta Comercial*, de acordo com a legislação vigente e com o porte correspondente ao faturamento efetivamente auferido.\\n \\nPara manter a empresa regular e"
+  },
+  {
+    "via": "xhr",
+    "metodo": "POST",
+    "url": "https://api.gestta.com.br/attendance-documents/file/67b71fa7dca30e3d2a697214",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "FormData{file=[FILE nome=logoCanella.png tipo=image/png bytes=49244]&company=6418e03fe478c70006b05005&caption=testye\n}",
+    "quando": "2026-08-13T14:09:11.448Z",
+    "status": 200,
+    "resposta": "{\"_id\":\"6a7dd009b8138833b0a306d6\",\"file_name\":\"logoCanella.png\",\"file_url\":\"https://api.gestta.com.br/attendance-documents/file/67b71fa7dca30e3d2a697214/6a7dd009b8138833b0a306d6\",\"content_type\":\"image/png\",\"caption\":\"testye\\r\\n\",\"size\":49244}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "POST",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/conversation/67b71fa7dca30e3d2a697214/file",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{\"uuid\":\"e135b10c-9551-4a4e-ad9c-bce94065bdcb\",\"file_name\":\"logoCanella.png\",\"content_type\":\"image/png\",\"caption\":\"testye\\r\\n\",\"file_url\":\"https://api.gestta.com.br/attendance-documents/file/67b71fa7dca30e3d2a697214/6a7dd009b8138833b0a306d6\",\"_id\":\"6a7dd009b8138833b0a306d6\",\"group_id\":\"120363404926085233@g.us\",\"internal_message\":false,\"mention_list\":[]}",
+    "quando": "2026-08-13T14:09:11.836Z",
+    "status": 200,
+    "resposta": "{\"id\":\"6a7dd009b8138833b0a306d6\",\"_id\":\"6a7dd009b8138833b0a306d6\",\"company\":\"6418e03fe478c70006b05005\",\"external_id\":\"true_120363404926085233@g.us_6a7dd009b8138833b0a306d6_5524999212350@c.us)\",\"external_id_key\":\"120363404926085233@g.us_6a7dd009b8138833b0a306d6\",\"type\":\"OUTBOUND\",\"content_type\":\"LINK\",\"status\":\"PENDING\",\"content\":\"https://api.gestta.com.br/attendance-documents/file/67b71fa7dca30e3d2a697214/6a7dd009b8138833b0a306d6\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"id\":\"67b71fa7dca30e3d2a697214\",\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \",\"company\":\"6418e03fe478c70006b05005\",\"collaborators\":[],\"is_group\":true,\"group_id\":\"120363404926085233@g.us\",\"groups\":[],\"created_at\":\"2025-02-20T12:27:19.502Z\",\"updated_at\":\"2026-08-13T14:08:03.547Z\",\"__v\":0,\"collaborators_updated_at\":\"2026-08-13T14:08:03.253Z\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"group_id\":\"120363404926085233@g.us\",\"uuid\":\"e135b10c-9551-4a4e-ad9c-bce94065bdcb\",\"received_at\":\"2026-08-13T14:09:13.479Z\",\"internal_message\":false,\"created_at\":\"2026-08-13T14:09:13.514Z\",\"updated_at\":\"2026-08-13T14:09:13.514Z\",\"content_history_list\":[],\"group_message_status\":[],\"__v\":0}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-documents/file/67b71fa7dca30e3d2a697214/6a7dd009b8138833b0a306d6/info",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:12.292Z",
+    "status": 200,
+    "resposta": "{\"_id\":\"6a7dd009b8138833b0a306d6\",\"file_name\":\"logoCanella.png\",\"owner\":\"67b71fa7dca30e3d2a697214\",\"company\":\"6418e03fe478c70006b05005\",\"content_type\":\"image/png\",\"caption\":\"testye\\r\\n\",\"size\":49244}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/groups/67b71fa7dca30e3d2a697214/participants",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:12.428Z",
+    "status": 200,
+    "resposta": "[{\"_id\":\"67a4ce56c87246b447b9cc6b\",\"name\":\"102 - ARTHUR CANELLA & SANTOS\",\"phone_number\":5524999625043,\"company\":{\"_id\":\"6418e03fe478c70006b05005\",\"name\":\"CANELLA & SANTOS CONTABILIDADE EIRELI\"},\"external_image_url\":\"https://pps.whatsapp.net/v/t61.24694-24/473406658_1233377481687334_8354036541096263606_n.jpg?ccb=11-4&oh=01_Q5AaIYVoiavoYo9PbNjdjW0zCHOdbH365Ur95n1OkmsBXbYh&oe=67F8EE37&_nc_sid=5e03e0&_nc_cat=104\",\"id\":\"67a4ce56c87246b447b9cc6b\"}]"
+  },
+  {
+    "via": "xhr",
+    "metodo": "POST",
+    "url": "https://api.gestta.com.br/attendance-core/attendance/disconsider",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{\"company_contact\":\"67b71fa7dca30e3d2a697214\"}",
+    "quando": "2026-08-13T14:09:16.640Z",
+    "status": 200,
+    "resposta": "{\"_id\":\"6a7dd00ed67cd82f2bea398a\",\"company\":\"6418e03fe478c70006b05005\",\"company_user\":\"66e894acb233839f51b8bad5\",\"company_contact\":\"67b71fa7dca30e3d2a697214\",\"started_at\":\"2026-08-13T14:09:13.479Z\",\"created_at\":\"2026-08-13T14:09:18.286Z\",\"company_user_data\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\",\"partner_config\":{\"permissions\":{\"setup\":true,\"service_request_view_others\":true,\"service_request_evaluation\":true,\"service_request_delete\":true}},\"company_department_list\":[\"6418e07383c669000841c76e\",\"6418e07383c669000841c78d\",\"6418e074e478c70006b051f3\",\"644ac6a37e0947000626cc58\"]},\"created_by_data\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\",\"partner_config\":{\"permissions\":{\"setup\":true,\"service_request_view_others\":true,\"service_request_evaluation\":true,\"service_request_delete\":true}},\"company_department_list\":[\"6418e07383c669000841c76e\",\"6418e07383c669000841c78d\",\"6418e074e478c70006b051f3\",\"644ac6a37e0947000626cc58\"]},\"created_by\":\"66e894acb233839f51b8bad5\",\"type\":\"DISCONSIDER\",\"mention_list\":[],\"finished_at\":\"2026-08-13T14:09:18.527Z\",\"statistics\":{\"duration\":{\"between_first_and_last_message\":0,\"attendance\":0,\"conversation\":4}}}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/groups/67b71fa7dca30e3d2a697214/participants",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:17.079Z",
+    "status": 200,
+    "resposta": "[{\"_id\":\"67a4ce56c87246b447b9cc6b\",\"name\":\"102 - ARTHUR CANELLA & SANTOS\",\"phone_number\":5524999625043,\"company\":{\"_id\":\"6418e03fe478c70006b05005\",\"name\":\"CANELLA & SANTOS CONTABILIDADE EIRELI\"},\"external_image_url\":\"https://pps.whatsapp.net/v/t61.24694-24/473406658_1233377481687334_8354036541096263606_n.jpg?ccb=11-4&oh=01_Q5AaIYVoiavoYo9PbNjdjW0zCHOdbH365Ur95n1OkmsBXbYh&oe=67F8EE37&_nc_sid=5e03e0&_nc_cat=104\",\"id\":\"67a4ce56c87246b447b9cc6b\"}]"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/67b71fa7dca30e3d2a697214/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:17.079Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dd009b8138833b0a306d6\",\"_id\":\"6a7dd009b8138833b0a306d6\",\"external_id\":\"true_120363404926085233@g.us_6a7dd009b8138833b0a306d6_5524999212350@c.us)\",\"uuid\":\"e135b10c-9551-4a4e-ad9c-bce94065bdcb\",\"created_at\":\"2026-08-13T14:09:13.514Z\",\"received_at\":\"2026-08-13T14:09:13.479Z\",\"updated_at\":\"2026-08-13T14:09:18.290Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"LINK\",\"content\":\"https://api.gestta.com.br/attendance-documents/file/67b71fa7dca30e3d2a697214/6a7dd009b8138833b0a306d6\",\"status\":\"SENT\",\"group_id\":\"120363404926085233@g.us\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dd00ed67cd82f2bea398a\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:09:13.479Z\",\"created_at\":\"2026-08-13T14:09:18.286Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"}},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dcfba9e4b85b754654af1\",\"_id\":\"6a7dcfba9e4b85b754654af1\",\"external_id\":\"true_120363404926085233@g.us_6a7dcfba9e4b85b754654af1_5524999212350@c.us)\",\"uuid\":\"79df477a-4556-44e8-a889-23da5dfe4070\",\"created_at\":\"2026-08-13T14:07:54.501Z\",\"received_at\":\"2026-08-13T14:07:54.468Z\",\"updated_at\":\"2026-08-13T14:08:03.513Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"SENT\",\"group_id\":\"120363404926085233@g.us\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc272e069ab081764cb\",\"t"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-whatsapp/groups/67b71fa7dca30e3d2a697214/participants",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:17.788Z",
+    "status": 200,
+    "resposta": "[{\"_id\":\"67a4ce56c87246b447b9cc6b\",\"name\":\"102 - ARTHUR CANELLA & SANTOS\",\"phone_number\":5524999625043,\"company\":{\"_id\":\"6418e03fe478c70006b05005\",\"name\":\"CANELLA & SANTOS CONTABILIDADE EIRELI\"},\"external_image_url\":\"https://pps.whatsapp.net/v/t61.24694-24/473406658_1233377481687334_8354036541096263606_n.jpg?ccb=11-4&oh=01_Q5AaIYVoiavoYo9PbNjdjW0zCHOdbH365Ur95n1OkmsBXbYh&oe=67F8EE37&_nc_sid=5e03e0&_nc_cat=104\",\"id\":\"67a4ce56c87246b447b9cc6b\"}]"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/67b71fa7dca30e3d2a697214/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:17.789Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dd009b8138833b0a306d6\",\"_id\":\"6a7dd009b8138833b0a306d6\",\"external_id\":\"true_120363404926085233@g.us_6a7dd009b8138833b0a306d6_5524999212350@c.us)\",\"uuid\":\"e135b10c-9551-4a4e-ad9c-bce94065bdcb\",\"created_at\":\"2026-08-13T14:09:13.514Z\",\"received_at\":\"2026-08-13T14:09:13.479Z\",\"updated_at\":\"2026-08-13T14:09:18.726Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"LINK\",\"content\":\"https://api.gestta.com.br/attendance-documents/file/67b71fa7dca30e3d2a697214/6a7dd009b8138833b0a306d6\",\"status\":\"SENT\",\"group_id\":\"120363404926085233@g.us\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dd00ed67cd82f2bea398a\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:09:13.479Z\",\"created_at\":\"2026-08-13T14:09:18.286Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"finished_at\":\"2026-08-13T14:09:18.527Z\",\"last_message\":true},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dcfba9e4b85b754654af1\",\"_id\":\"6a7dcfba9e4b85b754654af1\",\"external_id\":\"true_120363404926085233@g.us_6a7dcfba9e4b85b754654af1_5524999212350@c.us)\",\"uuid\":\"79df477a-4556-44e8-a889-23da5dfe4070\",\"created_at\":\"2026-08-13T14:07:54.501Z\",\"received_at\":\"2026-08-13T14:07:54.468Z\",\"updated_at\":\"2026-08-13T14:08:03.513Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"SENT\",\"group_id\":\"120363404926085233@g.us\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \"},\"author\":\"Canella & Santos - Departamento "
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/67b71fa7dca30e3d2a697214/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:17.897Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dd009b8138833b0a306d6\",\"_id\":\"6a7dd009b8138833b0a306d6\",\"external_id\":\"true_120363404926085233@g.us_6a7dd009b8138833b0a306d6_5524999212350@c.us)\",\"uuid\":\"e135b10c-9551-4a4e-ad9c-bce94065bdcb\",\"created_at\":\"2026-08-13T14:09:13.514Z\",\"received_at\":\"2026-08-13T14:09:13.479Z\",\"updated_at\":\"2026-08-13T14:09:18.726Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"LINK\",\"content\":\"https://api.gestta.com.br/attendance-documents/file/67b71fa7dca30e3d2a697214/6a7dd009b8138833b0a306d6\",\"status\":\"SENT\",\"group_id\":\"120363404926085233@g.us\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dd00ed67cd82f2bea398a\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:09:13.479Z\",\"created_at\":\"2026-08-13T14:09:18.286Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"finished_at\":\"2026-08-13T14:09:18.527Z\",\"last_message\":true},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dcfba9e4b85b754654af1\",\"_id\":\"6a7dcfba9e4b85b754654af1\",\"external_id\":\"true_120363404926085233@g.us_6a7dcfba9e4b85b754654af1_5524999212350@c.us)\",\"uuid\":\"79df477a-4556-44e8-a889-23da5dfe4070\",\"created_at\":\"2026-08-13T14:07:54.501Z\",\"received_at\":\"2026-08-13T14:07:54.468Z\",\"updated_at\":\"2026-08-13T14:08:03.513Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"SENT\",\"group_id\":\"120363404926085233@g.us\",\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"67b71fa7dca30e3d2a697214\",\"name\":\" 102 - TESTE T.I CANELLA \"},\"author\":\"Canella & Santos - Departamento "
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/67b71fa7dca30e3d2a697214/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:09:17.898Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/all",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:17.899Z",
+    "status": 200,
+    "resposta": "[{\"_id\":\"6a7dcfce2e748dc92af46c23\",\"company_contact\":{\"_id\":\"6a32f208af2fe235c7ef2e7b\",\"company\":\"6418e03fe478c70006b05005\",\"collaborators\":[\"6418e03fe478c70006b05047\",\"6418e03fe478c70006b05049\",\"6863dcc6fcea178564f1da16\",\"65784cf97c40e80006caa968\",\"677fd987e433f0a1036d8b13\",\"67f51d17abe51ce6ec62247f\",\"6418e074e478c70006b0522b\",\"6984ec665d04ceac93ed3228\",\"683f54cdfffa8a76fa079cf7\",\"69d3bfb0b8c656ce06432cd4\",\"6a624208923f2f095b16b577\",\"678f8038e433f0a103930090\",\"6418e07583c669000841c7f0\",\"6418e07583c669000841c7f6\",\"6418e03fe478c70006b0504b\",\"6418e075e478c70006b05265\",\"66cf761491eec2bc63db16c0\",\"66e894acb233839f51b8bad5\",\"6418e075e478c70006b0523b\",\"664f47475130429ab75ebf3a\",\"665600e9d1c6922c2fe1b046\",\"65940cb59c9edb0008e9b0ac\",\"6548dd8e5af3340006e32fbf\",\"697cf7fac6ac2896d1452aa1\",\"6418e07583c669000841c80d\",\"6937303e8a4a042c54b8c1fb\",\"64a482fb0feba600069f0135\",\"69971ecdcea8eb45850baf96\",\"65649bf746c5550006e825a1\",\"66608c699d63a3af6d0f6bb5\",\"6418e07583c669000841c7f8\",\"65d355901e9b7351d7891c92\",\"6418e07483c669000841c7cd\",\"68640c4df88577ad269afc37\",\"67b5beaeff9ea3a40aa6bed5\",\"67e1703a58a6a0155b66a0a2\",\"6418e07583c669000841c7fc\",\"6418e07583c669000841c811\",\"69a6037c14d9a5c733e4501c\"],\"name\":\"149 - A F DUTRA (CONTATO PRINCIPAL)\",\"phone_number\":552433488197,\"collaborators_updated_at\":\"2026-08-13T14:08:13.684Z\",\"id\":\"6a32f208af2fe235c7ef2e7b\"},\"type\":\"WHATSAPP\",\"__v\":0,\"last_message\":{\"id\":\"6a7dcfce578b71804baed2d1\",\"_id\":\"6a7dcfce578b71804baed2d1\",\"company\":\"6418e03fe478c70006b05005\",\"external_id\":\"internal_message@2a30dd36-9db3-4ab7-a671-1ee404480102\",\"external_id_key\":null,\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"status\":\"PENDING\",\"content\":\"149 - A F DUTRA (CONTATO PRINCIPAL) foi transferido devido a falta de interação com a distribuição de departamentos, alguém pode ajuda-lo?\",\"company_user\":{\"_id\":\"6418e03fe478c70006b05049\",\"name\":\"U+1F4AC\",\"email\":\"c282709d-4b23-4520-a74c-c9bc280cd113@distributormail.com\",\"role\":\"ROLE_USER\",\"distributor\":true},\"author\":\"U+1F4AC\",\"phone_"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/6a7dcc33e972ae16306b7c8e/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:09:19.111Z",
+    "status": 200,
+    "resposta": "{}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/company/contact/6a7dcc33e972ae16306b7c8e",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:19.432Z",
+    "status": 200,
+    "resposta": "{\"id\":\"6a7dcc33e972ae16306b7c8e\",\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\",\"phone_number\":5524999877658,\"company\":\"6418e03fe478c70006b05005\",\"customer_user_data\":{\"customer_list\":[],\"company_department_list\":[]},\"collaborators\":[\"6418e03fe478c70006b05047\",\"6418e03fe478c70006b05049\",\"6863dcc6fcea178564f1da16\",\"65784cf97c40e80006caa968\",\"677fd987e433f0a1036d8b13\",\"67f51d17abe51ce6ec62247f\",\"6418e074e478c70006b0522b\",\"6984ec665d04ceac93ed3228\",\"683f54cdfffa8a76fa079cf7\",\"69d3bfb0b8c656ce06432cd4\",\"6a624208923f2f095b16b577\",\"678f8038e433f0a103930090\",\"6418e07583c669000841c7f0\",\"6418e07583c669000841c7f6\",\"6418e03fe478c70006b0504b\",\"6418e075e478c70006b05265\",\"66cf761491eec2bc63db16c0\",\"66e894acb233839f51b8bad5\",\"6418e075e478c70006b0523b\",\"664f47475130429ab75ebf3a\",\"665600e9d1c6922c2fe1b046\",\"65940cb59c9edb0008e9b0ac\",\"6548dd8e5af3340006e32fbf\",\"697cf7fac6ac2896d1452aa1\",\"6418e07583c669000841c80d\",\"6937303e8a4a042c54b8c1fb\",\"64a482fb0feba600069f0135\",\"69971ecdcea8eb45850baf96\",\"65649bf746c5550006e825a1\",\"66608c699d63a3af6d0f6bb5\",\"6418e07583c669000841c7f8\",\"65d355901e9b7351d7891c92\",\"6418e07483c669000841c7cd\",\"68640c4df88577ad269afc37\",\"67b5beaeff9ea3a40aa6bed5\",\"67e1703a58a6a0155b66a0a2\",\"6418e07583c669000841c7fc\",\"6418e07583c669000841c811\",\"69a6037c14d9a5c733e4501c\"],\"groups\":[],\"created_at\":\"2026-08-13T13:52:51.402Z\",\"updated_at\":\"2026-08-13T14:08:53.647Z\",\"collaborators_updated_at\":\"2026-08-13T14:08:09.765Z\",\"has_customer_with_bot_enabled\":false,\"has_default_department\":false}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/6a7dcc33e972ae16306b7c8e/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:09:19.782Z",
+    "status": 200,
+    "resposta": ""
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/6a7dcc33e972ae16306b7c8e/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:19.783Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dcff52fcfeef1db0cf864\",\"_id\":\"6a7dcff52fcfeef1db0cf864\",\"external_id\":\"true_194781229662384@lid_6a7dcff52fcfeef1db0cf864\",\"uuid\":\"67b97087-d31c-4885-8082-8884f39e8ed3\",\"created_at\":\"2026-08-13T14:08:53.627Z\",\"received_at\":\"2026-08-13T14:08:53.595Z\",\"updated_at\":\"2026-08-13T14:09:01.924Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"LINK\",\"content\":\"https://api.gestta.com.br/attendance-documents/file/6a7dcc33e972ae16306b7c8e/6a7dcff52fcfeef1db0cf864\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dcfb06e3a03a6ca3e233e\",\"_id\":\"6a7dcfb06e3a03a6ca3e233e\",\"external_id\":\"true_194781229662384@lid_6a7dcfb06e3a03a6ca3e233e\",\"uuid\":\"5386ab04-23b0-4141-afc4-8d210505c17f\",\"created_at\":\"2026-08-13T14:07:44.471Z\",\"received_at\":\"2026-08-13T14:07:44.437Z\",\"updated_at\":\"2026-08-13T14:08:09.786Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc970c0542fd4a2f80c\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"finished_at\":\"2026-08-13T14:08:09.770Z\",\"started_at\":\"2026-08-13T14:03:29.493Z\",\"created_at\":\"2026-08-13T14:08:09.640Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"type\":\"DISCONSIDER\",\"last_message\":true},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dceb1f1c8ac70c"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/messenger-admin/company/user/transfer/6a7dcc33e972ae16306b7c8e?active=true",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:19.784Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"_id\":\"6863dcc6fcea178564f1da16\",\"email\":\"annacbrodrigues.canellaesantos@gmail.com\",\"name\":\"Carol - Setor Pessoal\",\"id\":\"6863dcc6fcea178564f1da16\"},{\"_id\":\"65784cf97c40e80006caa968\",\"name\":\"Aline Meireles - Setor Financeiro\",\"email\":\"aline.canellaesantos@gmail.com\",\"id\":\"65784cf97c40e80006caa968\"},{\"_id\":\"677fd987e433f0a1036d8b13\",\"email\":\"julia.canellaesantos@gmail.com\",\"name\":\"Julia Alves - Setor Fiscal\",\"id\":\"677fd987e433f0a1036d8b13\"},{\"_id\":\"67f51d17abe51ce6ec62247f\",\"email\":\"vanessacler.canellaesantos@gmail.com\",\"name\":\"Vanessa Cler - Setor Fiscal\",\"id\":\"67f51d17abe51ce6ec62247f\"},{\"_id\":\"6418e074e478c70006b0522b\",\"name\":\"Laís Almeida - Setor Pessoal\",\"email\":\"laisalmeida.canellaesantos@gmail.com\",\"id\":\"6418e074e478c70006b0522b\"},{\"_id\":\"6984ec665d04ceac93ed3228\",\"email\":\"neiva.vasconcelos.canellaesantos@gmail.com\",\"name\":\"Neiva Beatriz da Silveira Vasconcelos\",\"id\":\"6984ec665d04ceac93ed3228\"},{\"_id\":\"683f54cdfffa8a76fa079cf7\",\"email\":\"rodrigoalves.canellaesantos@gmail.com\",\"name\":\"Rodrigo - Setor Fiscal\",\"id\":\"683f54cdfffa8a76fa079cf7\"},{\"_id\":\"69d3bfb0b8c656ce06432cd4\",\"email\":\"pollyana.amorim.canellaesantos@gmail.com\",\"name\":\"Pollyana do Nascimento Amorim\",\"id\":\"69d3bfb0b8c656ce06432cd4\"},{\"_id\":\"6a624208923f2f095b16b577\",\"email\":\"cristiane.canellaesantos@gmail.com\",\"name\":\"CRISTIANE VALADÃO DE ALMEIDA\",\"id\":\"6a624208923f2f095b16b577\"},{\"_id\":\"678f8038e433f0a103930090\",\"email\":\"arthurbrito.canellaesantos@gmail.com\",\"name\":\"Canella & Santos - Comunicação 2\",\"id\":\"678f8038e433f0a103930090\"},{\"_id\":\"6418e07583c669000841c7f0\",\"name\":\"Levi Canella\",\"email\":\"levicanella@gmail.com\",\"id\":\"6418e07583c669000841c7f0\"},{\"_id\":\"6418e07583c669000841c7f6\",\"name\":\"Cataryna Lopes - Soluções Estratégicas\",\"email\":\"catarynacanella@gmail.com\",\"id\":\"6418e07583c669000841c7f6\"},{\"_id\":\"6418e03fe478c70006b0504b\",\"name\":\"GERENTE\",\"email\":\"suporte@canellaesantos.com.br\",\"id\":\"6418e03fe478c70006b0504b\"},{\"_id\":\"6418e075e478c70006b05265\",\"name\":\"Josiele Rezende - Gerência Co"
+  },
+  {
+    "via": "xhr",
+    "metodo": "POST",
+    "url": "https://api.gestta.com.br/attendance-core/attendance/disconsider",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{\"company_contact\":\"6a7dcc33e972ae16306b7c8e\"}",
+    "quando": "2026-08-13T14:09:22.210Z",
+    "status": 200,
+    "resposta": "{\"_id\":\"6a7dd013e88ae0312954024b\",\"company\":\"6418e03fe478c70006b05005\",\"company_user\":\"66e894acb233839f51b8bad5\",\"company_contact\":\"6a7dcc33e972ae16306b7c8e\",\"started_at\":\"2026-08-13T14:08:53.595Z\",\"created_at\":\"2026-08-13T14:09:23.860Z\",\"company_user_data\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\",\"partner_config\":{\"permissions\":{\"setup\":true,\"service_request_view_others\":true,\"service_request_evaluation\":true,\"service_request_delete\":true}},\"company_department_list\":[\"6418e07383c669000841c76e\",\"6418e07383c669000841c78d\",\"6418e074e478c70006b051f3\",\"644ac6a37e0947000626cc58\"]},\"created_by_data\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\",\"email\":\"hugoalmeida.canellaesantos@gmail.com\",\"role\":\"ROLE_MANAGER\",\"partner_config\":{\"permissions\":{\"setup\":true,\"service_request_view_others\":true,\"service_request_evaluation\":true,\"service_request_delete\":true}},\"company_department_list\":[\"6418e07383c669000841c76e\",\"6418e07383c669000841c78d\",\"6418e074e478c70006b051f3\",\"644ac6a37e0947000626cc58\"]},\"created_by\":\"66e894acb233839f51b8bad5\",\"type\":\"DISCONSIDER\",\"mention_list\":[],\"finished_at\":\"2026-08-13T14:09:23.964Z\",\"statistics\":{\"duration\":{\"between_first_and_last_message\":0,\"attendance\":0,\"conversation\":30}}}"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/6a7dcc33e972ae16306b7c8e/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:22.625Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dcff52fcfeef1db0cf864\",\"_id\":\"6a7dcff52fcfeef1db0cf864\",\"external_id\":\"true_194781229662384@lid_6a7dcff52fcfeef1db0cf864\",\"uuid\":\"67b97087-d31c-4885-8082-8884f39e8ed3\",\"created_at\":\"2026-08-13T14:08:53.627Z\",\"received_at\":\"2026-08-13T14:08:53.595Z\",\"updated_at\":\"2026-08-13T14:09:23.993Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"LINK\",\"content\":\"https://api.gestta.com.br/attendance-documents/file/6a7dcc33e972ae16306b7c8e/6a7dcff52fcfeef1db0cf864\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dd013e88ae0312954024b\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:08:53.595Z\",\"created_at\":\"2026-08-13T14:09:23.860Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"finished_at\":\"2026-08-13T14:09:23.964Z\",\"last_message\":true},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dcfb06e3a03a6ca3e233e\",\"_id\":\"6a7dcfb06e3a03a6ca3e233e\",\"external_id\":\"true_194781229662384@lid_6a7dcfb06e3a03a6ca3e233e\",\"uuid\":\"5386ab04-23b0-4141-afc4-8d210505c17f\",\"created_at\":\"2026-08-13T14:07:44.471Z\",\"received_at\":\"2026-08-13T14:07:44.437Z\",\"updated_at\":\"2026-08-13T14:08:09.786Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc970c0542fd4a2f80c\",\"type\":\"DISCONSIDER\"},\"at"
+  },
+  {
+    "via": "xhr",
+    "metodo": "GET",
+    "url": "https://api.gestta.com.br/attendance-core/conversation/6a7dcc33e972ae16306b7c8e/message?limit=30&page=1",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": null,
+    "quando": "2026-08-13T14:09:22.809Z",
+    "status": 200,
+    "resposta": "{\"docs\":[{\"id\":\"6a7dcff52fcfeef1db0cf864\",\"_id\":\"6a7dcff52fcfeef1db0cf864\",\"external_id\":\"true_194781229662384@lid_6a7dcff52fcfeef1db0cf864\",\"uuid\":\"67b97087-d31c-4885-8082-8884f39e8ed3\",\"created_at\":\"2026-08-13T14:08:53.627Z\",\"received_at\":\"2026-08-13T14:08:53.595Z\",\"updated_at\":\"2026-08-13T14:09:23.993Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"LINK\",\"content\":\"https://api.gestta.com.br/attendance-documents/file/6a7dcc33e972ae16306b7c8e/6a7dcff52fcfeef1db0cf864\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dd013e88ae0312954024b\",\"type\":\"DISCONSIDER\"},\"attendance_info\":{\"first_message\":true,\"type\":\"DISCONSIDER\",\"started_at\":\"2026-08-13T14:08:53.595Z\",\"created_at\":\"2026-08-13T14:09:23.860Z\",\"company_user\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"created_by\":{\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"finished_at\":\"2026-08-13T14:09:23.964Z\",\"last_message\":true},\"content_history_list\":[],\"archived\":false,\"internal_message\":false},{\"id\":\"6a7dcfb06e3a03a6ca3e233e\",\"_id\":\"6a7dcfb06e3a03a6ca3e233e\",\"external_id\":\"true_194781229662384@lid_6a7dcfb06e3a03a6ca3e233e\",\"uuid\":\"5386ab04-23b0-4141-afc4-8d210505c17f\",\"created_at\":\"2026-08-13T14:07:44.471Z\",\"received_at\":\"2026-08-13T14:07:44.437Z\",\"updated_at\":\"2026-08-13T14:08:09.786Z\",\"company\":\"6418e03fe478c70006b05005\",\"type\":\"OUTBOUND\",\"content_type\":\"CHAT\",\"content\":\"teste\",\"status\":\"DELIVERED\",\"phone_number\":5524999877658,\"company_user\":{\"_id\":\"66e894acb233839f51b8bad5\",\"name\":\"Canella & Santos - Departamento Tecnologia\"},\"company_contact\":{\"_id\":\"6a7dcc33e972ae16306b7c8e\",\"name\":\"102 - Hugo\"},\"author\":\"Canella & Santos - Departamento Tecnologia\",\"attendance\":{\"_id\":\"6a7dcfc970c0542fd4a2f80c\",\"type\":\"DISCONSIDER\"},\"at"
+  },
+  {
+    "via": "xhr",
+    "metodo": "PATCH",
+    "url": "https://api.gestta.com.br/attendance-core/notification/6a7dcc33e972ae16306b7c8e/seen",
+    "headers": {
+      "Accept": "application/json, text/plain, */*",
+      "Content-Type": "application/json",
+      "Authorization": "JWT eyJhbGci...[MASCARADO 753 chars]"
+    },
+    "corpo": "{}",
+    "quando": "2026-08-13T14:09:22.810Z",
+    "status": 200,
+    "resposta": ""
+  }
+]

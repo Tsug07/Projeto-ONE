@@ -20,9 +20,20 @@ from webdriver_manager.chrome import ChromeDriverManager
 from selenium.common.exceptions import TimeoutException
 from datetime import datetime
 
+# Camada de API do Gestta Messenger (opcional: o app funciona sem ela, via Selenium)
+try:
+    import gestta_api
+except Exception:
+    gestta_api = None
+
 """
 AutoMessenger ONE - Unified automation tool for sending messages via Onvio Messenger.
 Supports multiple models with customizable Excel structures and messages.
+
+Esta versao (ONE_API) suporta TRES modos de envio, ver MODO_ENVIO:
+  selenium - automatiza a interface (comportamento original do ONE_V3.1)
+  dry-run  - resolve destinatarios e monta as mensagens SEM enviar nada
+  api      - envia pela API do Gestta (ver API_GESTTA_MESSENGER.md)
 """
 
 # Configuração do tema do customtkinter
@@ -65,8 +76,14 @@ KEEP_ALIVE_INTERVALO = 30 * 60 * 1000  # 30 minutos em milissegundos
 AGRUPAR_POR_CONTATO = False
 
 # Pausa (segundos) entre um contato e o próximo, em todos os modelos.
-# Soma-se aos ~5s internos do envio, então o intervalo real é este valor + 5s.
+# Soma-se aos ~5s internos do envio (no modo selenium), então o intervalo real
+# é este valor + 5s. Via API não há essas esperas: o loop fica bem mais rápido.
 DELAY_ENTRE_ENVIOS = 3
+
+# Modo de envio: "selenium" (original), "dry-run" (simula) ou "api" (envia via API).
+# Definido na interface; começa em dry-run para não enviar nada por acidente.
+MODO_ENVIO = None
+MODO_PADRAO = "dry-run"
 
 # Modelos suportados
 MODELOS = {
@@ -325,6 +342,18 @@ def encontrar_e_clicar_barra_contatos(driver, contato, grupo):
         return False
 
 def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, modelo=None, caminhos=None):
+    """Roteia o envio conforme MODO_ENVIO. Assinatura preservada: os loops de
+    processamento continuam chamando esta funcao sem saber qual via foi usada."""
+    modo = MODO_ENVIO.get() if MODO_ENVIO else "selenium"
+    if modo in ("api", "dry-run"):
+        return enviar_mensagem_api(driver, contato, grupo, mensagem, codigo,
+                                   identificador, modelo, caminhos,
+                                   simular=(modo == "dry-run"))
+    return enviar_mensagem_selenium(driver, contato, grupo, mensagem, codigo,
+                                    identificador, modelo, caminhos)
+
+
+def enviar_mensagem_selenium(driver, contato, grupo, mensagem, codigo, identificador, modelo=None, caminhos=None):
     try:
         if encontrar_e_clicar_barra_contatos(driver, contato, grupo):
             time.sleep(6)
@@ -368,6 +397,202 @@ def enviar_mensagem(driver, contato, grupo, mensagem, codigo, identificador, mod
     except Exception as e:
         atualizar_log(f"Erro geral ao enviar mensagem: {str(e)}", cor="vermelho")
         return False
+
+
+# ----------------------------- ENVIO VIA API ---------------------------------
+# Contrato em API_GESTTA_MESSENGER.md (descoberto por captura do trafego real).
+# O indice de destinatarios e carregado UMA vez por processamento.
+
+_indice_nome = None      # {NOME_EXIBIDO: info}  - casa com as colunas da planilha
+_indice_codigo = None    # {codigo_empresa: info} - fallback
+
+# Estatisticas do dry-run, para o resumo final.
+_stats = {"ok": 0, "falha": 0, "grupos": 0, "contatos": 0,
+          "por_codigo": 0, "sem_destino": [], "problemas": []}
+
+
+def _zerar_stats():
+    _stats.update({"ok": 0, "falha": 0, "grupos": 0, "contatos": 0,
+                   "por_codigo": 0, "sem_destino": [], "problemas": []})
+
+
+def resumo_dry_run(log=None):
+    """Imprime o balanco do dry-run: o que enviaria e o que falharia."""
+    log = log or atualizar_log       # resolvido em runtime: atualizar_log vem depois
+    total = _stats["ok"] + _stats["falha"]
+    if not total:
+        return
+    log("\n" + "=" * 60, cor="azul")
+    log("RESUMO DO DRY-RUN", cor="azul")
+    log("=" * 60, cor="azul")
+    log(f"Destinatarios processados : {total}")
+    log(f"  prontos para enviar     : {_stats['ok']}"
+        f"  ({_stats['contatos']} contatos, {_stats['grupos']} grupos)",
+        cor="verde" if _stats["ok"] else None)
+    log(f"  com problema            : {_stats['falha']}",
+        cor="vermelho" if _stats["falha"] else None)
+    if _stats["por_codigo"]:
+        log(f"  resolvidos por codigo   : {_stats['por_codigo']} "
+            f"(nome nao bateu; confira estes)", cor="azul")
+
+    if _stats["sem_destino"]:
+        log(f"\nSEM DESTINO ({len(_stats['sem_destino'])}):", cor="vermelho")
+        for item in _stats["sem_destino"][:15]:
+            log(f"  - {item}", cor="vermelho")
+        if len(_stats["sem_destino"]) > 15:
+            log(f"  ... e mais {len(_stats['sem_destino']) - 15}", cor="vermelho")
+
+    if _stats["problemas"]:
+        log(f"\nCOM PROBLEMA ({len(_stats['problemas'])}):", cor="vermelho")
+        for item in _stats["problemas"][:15]:
+            log(f"  - {item}", cor="vermelho")
+        if len(_stats["problemas"]) > 15:
+            log(f"  ... e mais {len(_stats['problemas']) - 15}", cor="vermelho")
+
+    log("\nNada foi enviado. Para enviar, troque o modo para 'api'.", cor="azul")
+    log("=" * 60, cor="azul")
+
+
+def preparar_api(driver=None, log=None):
+    """Carrega token + indice de destinatarios. Chamar antes do loop de envio.
+
+    Retorna True se a API esta pronta. O token sai do proprio Chrome que o ONE
+    ja abriu (sem abrir um segundo navegador)."""
+    log = log or atualizar_log       # resolvido em runtime: atualizar_log vem depois
+    global _indice_nome, _indice_codigo
+    _zerar_stats()
+    if gestta_api is None:
+        log("Modulo gestta_api indisponivel (falta 'requests'?).", cor="vermelho")
+        return False
+    try:
+        if driver is not None:
+            gestta_api.ler_token_do_driver(driver, "messenger",
+                                           log=lambda m: log(m, cor="azul"))
+        token = gestta_api.obter_token("messenger", log=lambda m: log(m, cor="azul"))
+        horas = int((gestta_api._expiracao(token) - time.time()) / 3600)
+        log(f"API: token do Messenger OK (~{horas}h de validade).", cor="azul")
+
+        _indice_nome = gestta_api.indexar_por_nome(token=token,
+                                                   log=lambda m: log(m, cor="azul"))
+        _indice_codigo = gestta_api.indexar_por_codigo(token=token,
+                                                       log=lambda m: log(m, cor="azul"))
+        log(f"API: {len(_indice_nome)} destinatarios indexados por nome.", cor="azul")
+        return True
+    except Exception as e:
+        log(f"API: falha ao preparar -> {str(e)[:200]}", cor="vermelho")
+        return False
+
+
+def resolver_alvo(contato, grupo, codigo):
+    """Encontra o destinatario no indice, na MESMA ordem de prioridade do
+    Selenium: grupo quando preenchido, senao contato; codigo como ultimo
+    recurso. Devolve (info, origem) ou (None, motivo)."""
+    if _indice_nome is None:
+        return None, "indice nao carregado"
+
+    grupo_ok = grupo and str(grupo).strip().upper() != "NONE"
+    contato_ok = contato and str(contato).strip().upper() != "NONE"
+
+    if grupo_ok:
+        info = gestta_api.resolver_por_nome(grupo, _indice_nome)
+        if info:
+            return info, "grupo por nome"
+    if contato_ok:
+        info = gestta_api.resolver_por_nome(contato, _indice_nome)
+        if info:
+            return info, "contato por nome"
+    if codigo and _indice_codigo:
+        info = gestta_api.resolver_destinatario(codigo, _indice_codigo)
+        if info:
+            return info, "codigo (fallback)"
+
+    if not grupo_ok and not contato_ok:
+        return None, "contato e grupo sao NONE"
+    procurado = grupo if grupo_ok else contato
+    return None, f"nao encontrado no Messenger: '{procurado}'"
+
+
+def _resumo_destino(info):
+    if info.get("is_group"):
+        return f"GRUPO {info.get('raw_name','')} [{info.get('group_id')}]"
+    return f"contato {info.get('raw_name','')} [{info.get('telefone') or 'sem telefone'}]"
+
+
+def enviar_mensagem_api(driver, contato, grupo, mensagem, codigo, identificador,
+                        modelo=None, caminhos=None, simular=False):
+    """Envia via API. Com simular=True apenas registra o que faria (dry-run).
+
+    Mantem o contrato de enviar_mensagem: True = sucesso, False = falha."""
+    alvo = contato or grupo
+    info, origem = resolver_alvo(contato, grupo, codigo)
+
+    if not info:
+        atualizar_log(f"[{'DRY-RUN' if simular else 'API'}] SEM DESTINO para "
+                      f"{codigo} - {identificador}: {origem}", cor="vermelho")
+        _stats["falha"] += 1
+        _stats["sem_destino"].append(f"{codigo} - {identificador}: {origem}")
+        return False
+
+    # Validacoes que evitam falha so na hora do envio real.
+    problemas = []
+    if info.get("is_group") and not info.get("group_id"):
+        problemas.append("grupo sem group_id")
+    if not info.get("is_group") and not info.get("telefone"):
+        problemas.append("contato sem telefone")
+    if not (mensagem or "").strip() and not caminhos:
+        problemas.append("sem mensagem e sem anexo")
+    for caminho in (caminhos or []):
+        if caminho and not os.path.exists(caminho):
+            problemas.append(f"anexo inexistente: {os.path.basename(caminho)}")
+
+    if simular:
+        n_linhas = len((mensagem or "").splitlines())
+        n_chars = len(mensagem or "")
+        atualizar_log(
+            f"[DRY-RUN] {codigo} - {identificador}\n"
+            f"          destino : {_resumo_destino(info)}\n"
+            f"          origem  : {origem}\n"
+            f"          mensagem: {n_chars} chars, {n_linhas} linhas\n"
+            f"          anexos  : {len(caminhos or [])}",
+            cor="azul")
+        if problemas:
+            atualizar_log(f"          PROBLEMA: {'; '.join(problemas)}", cor="vermelho")
+            _stats["falha"] += 1
+            _stats["problemas"].append(
+                f"{codigo} - {identificador}: {'; '.join(problemas)}")
+            return False
+        # Mostra o inicio da mensagem para conferencia visual do template.
+        previa = (mensagem or "").strip().replace("\n", " | ")[:120]
+        if previa:
+            atualizar_log(f"          previa  : {previa}...", cor="azul")
+        _stats["ok"] += 1
+        _stats["grupos" if info.get("is_group") else "contatos"] += 1
+        if origem.startswith("codigo"):
+            _stats["por_codigo"] += 1
+        return True
+
+    if problemas:
+        atualizar_log(f"[API] {codigo} - {identificador}: {'; '.join(problemas)}",
+                      cor="vermelho")
+        return False
+
+    try:
+        r = gestta_api.enviar_para(info, mensagem=mensagem, caminhos=caminhos,
+                                   desconsiderar=True,
+                                   log=lambda m: atualizar_log(m, cor="azul"))
+        if r.get("ok"):
+            atualizar_log(f"\nAviso enviado para {alvo}, {codigo} - {identificador}.\n",
+                          cor="verde")
+            for erro in r.get("erros", []):
+                atualizar_log(f"  aviso: {erro}", cor="vermelho")
+            return True
+        atualizar_log(f"[API] Falha para {alvo}: {'; '.join(r.get('erros', []))}",
+                      cor="vermelho")
+        return False
+    except Exception as e:
+        atualizar_log(f"[API] Erro ao enviar para {alvo}: {str(e)[:200]}", cor="vermelho")
+        return False
+
 
 # Funções de Navegação e Automação (reutilizadas do main.py e prorcontrato.py)
 def obter_perfil_chrome():
@@ -1034,6 +1259,14 @@ def iniciar_processamento():
     thread = threading.Thread(target=processar_dados, args=(excel, modelo, linha))
     thread.start()
 
+def pausar_entre_envios():
+    """Pausa entre destinatarios. No dry-run nao ha envio real, entao nao espera."""
+    modo = MODO_ENVIO.get() if MODO_ENVIO else "selenium"
+    if modo == "dry-run":
+        return
+    time.sleep(DELAY_ENTRE_ENVIOS)
+
+
 def formatar_tempo(tempo_inicio):
     """Calcula e formata o tempo decorrido desde tempo_inicio."""
     tempo_total = time.time() - tempo_inicio
@@ -1052,14 +1285,32 @@ def processar_dados(excel, modelo, linha_inicial):
     tempo_inicio = time.time()
     atualizar_log("Timer iniciado.", cor="azul")
 
-    url = "https://app.gestta.com.br/attendance/#/chat/contact-list"
-    driver = abrir_chrome_com_url(url)
-    if not driver:
-        atualizar_log("Não foi possível abrir o Chrome. Processamento abortado.", cor="vermelho")
-        finalizar_programa()
-        return
+    modo = MODO_ENVIO.get() if MODO_ENVIO else "selenium"
+    atualizar_log(f"Modo de envio: {modo.upper()}", cor="azul")
+    if modo == "dry-run":
+        atualizar_log("DRY-RUN: nada sera enviado. Apenas simulacao.", cor="azul")
 
-    time.sleep(10)
+    # O Chrome so e necessario para automatizar a tela ou para ler o token.
+    # No dry-run/api usamos a API, mas ainda abrimos o Chrome para pegar o token
+    # da sessao logada -- a menos que MESSENGER_TOKEN ja esteja no ambiente.
+    driver = None
+    precisa_chrome = (modo == "selenium") or not os.environ.get("MESSENGER_TOKEN")
+    if precisa_chrome:
+        url = "https://app.gestta.com.br/attendance/#/chat/contact-list"
+        driver = abrir_chrome_com_url(url)
+        if not driver:
+            atualizar_log("Não foi possível abrir o Chrome. Processamento abortado.", cor="vermelho")
+            finalizar_programa()
+            return
+        time.sleep(10)
+
+    if modo in ("api", "dry-run"):
+        if not preparar_api(driver):
+            atualizar_log("Não foi possível preparar a API. Processamento abortado.",
+                          cor="vermelho")
+            finalizar_programa()
+            return
+
     dados = ler_dados_excel(excel, modelo, linha_inicial)
     if not dados:
         atualizar_log("Nenhum dado para processar.", cor="vermelho")
@@ -1099,7 +1350,7 @@ def processar_dados(excel, modelo, linha_inicial):
             if enviar_mensagem(driver, contato, grupo, mensagem, cod, nome_emp):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
-            time.sleep(DELAY_ENTRE_ENVIOS)
+            pausar_entre_envios()
     
     elif modelo == "ComuniCertificado":
         codigos, nomes, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas = extrair_dados(dados, modelo)
@@ -1117,7 +1368,7 @@ def processar_dados(excel, modelo, linha_inicial):
             if enviar_mensagem(driver, contato, grupo, mensagem, cod, nome_emp):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
-            time.sleep(DELAY_ENTRE_ENVIOS)
+            pausar_entre_envios()
 
     elif modelo == "ONE":
         contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista = extrair_dados(dados, modelo)
@@ -1147,7 +1398,7 @@ def processar_dados(excel, modelo, linha_inicial):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} arquivos\n")
 
-            time.sleep(DELAY_ENTRE_ENVIOS)
+            pausar_entre_envios()
             linha_atual += num_empresas
             
     elif modelo == "ALL_info":
@@ -1185,7 +1436,7 @@ def processar_dados(excel, modelo, linha_inicial):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s){log_extra}\n")
 
-            time.sleep(DELAY_ENTRE_ENVIOS)
+            pausar_entre_envios()
             linha_atual += num_empresas
 
     else:  # Modelo ALL
@@ -1230,11 +1481,13 @@ def processar_dados(excel, modelo, linha_inicial):
                     anexo_info = " + anexo" if arquivo_anexo else ""
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s){anexo_info}\n")
 
-            time.sleep(DELAY_ENTRE_ENVIOS)
+            pausar_entre_envios()
             linha_atual += num_empresas
     atualizar_progresso(100, "Concluído")
     atualizar_log(f"Tempo total de processamento: {formatar_tempo(tempo_inicio)}", cor="verde")
     atualizar_log("Processamento finalizado!", cor="verde")
+    if (MODO_ENVIO.get() if MODO_ENVIO else "") == "dry-run":
+        resumo_dry_run()
     finalizar_programa()
 
 
@@ -1259,7 +1512,18 @@ def fechar_programa():
     janela.quit()
 
 def finalizar_programa():
-    messagebox.showinfo("Processo Finalizado", "Processamento concluído!")
+    if (MODO_ENVIO.get() if MODO_ENVIO else "") == "dry-run":
+        total = _stats["ok"] + _stats["falha"]
+        messagebox.showinfo(
+            "Dry-run concluído",
+            f"Simulação concluída — NADA foi enviado.\n\n"
+            f"Destinatários: {total}\n"
+            f"Prontos: {_stats['ok']} "
+            f"({_stats['contatos']} contatos, {_stats['grupos']} grupos)\n"
+            f"Com problema: {_stats['falha']}\n\n"
+            f"Veja o log para o detalhamento.")
+    else:
+        messagebox.showinfo("Processo Finalizado", "Processamento concluído!")
     botao_fechar.configure(state="normal")
     botao_iniciar.configure(state="normal")
     botao_iniciar_chrome.configure(state="normal")  # Reativar o botão de Chrome
@@ -1336,7 +1600,7 @@ def processar_dados_agendado(excel, modelo, linha_inicial):
             if enviar_mensagem(driver, contato, grupo, mensagem, cod, nome_emp):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
-            time.sleep(DELAY_ENTRE_ENVIOS)
+            pausar_entre_envios()
 
     elif modelo == "ComuniCertificado":
         codigos, nomes, nome_contatos, nome_grupos, cnpjs, vencimentos, cartas = extrair_dados(dados, modelo)
@@ -1355,7 +1619,7 @@ def processar_dados_agendado(excel, modelo, linha_inicial):
             if enviar_mensagem(driver, contato, grupo, mensagem, cod, nome_emp):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo}\n")
-            time.sleep(DELAY_ENTRE_ENVIOS)
+            pausar_entre_envios()
 
     elif modelo == "ONE":
         contatos, nome_contatos, nome_grupos, empresas_lista, caminhos_lista = extrair_dados(dados, modelo)
@@ -1379,7 +1643,7 @@ def processar_dados_agendado(excel, modelo, linha_inicial):
             if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo, caminhos):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} arquivos\n")
-            time.sleep(DELAY_ENTRE_ENVIOS)
+            pausar_entre_envios()
             linha_atual += num_empresas
 
     elif modelo == "ALL_info":
@@ -1411,7 +1675,7 @@ def processar_dados_agendado(excel, modelo, linha_inicial):
             if enviar_mensagem(driver, contato, grupo, mensagem, contato_key, identificador, modelo):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s){log_extra}\n")
-            time.sleep(DELAY_ENTRE_ENVIOS)
+            pausar_entre_envios()
             linha_atual += num_empresas
 
     else:  # Modelo ALL
@@ -1448,7 +1712,7 @@ def processar_dados_agendado(excel, modelo, linha_inicial):
                 with open(log_file_path, 'a', encoding='utf-8') as f:
                     anexo_info = " + anexo" if arquivo_anexo else ""
                     f.write(f"[{datetime.now()}] ✓ Mensagem enviada para {contato or grupo} com {num_empresas} empresa(s){anexo_info}\n")
-            time.sleep(DELAY_ENTRE_ENVIOS)
+            pausar_entre_envios()
             linha_atual += num_empresas
 
     # Exibir tempo de processamento
@@ -1473,9 +1737,17 @@ def inicializar_arquivo_log(modelo):
     log_dir = os.path.join(os.path.dirname(__file__), 'AutoMessengerONE_Logs')
     os.makedirs(log_dir, exist_ok=True)
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    log_file_path = os.path.join(log_dir, f"{modelo}_log_{timestamp}.txt")
+    # O modo entra no nome: um log de simulacao nao pode ser confundido com
+    # um de envio real ao ser consultado depois.
+    modo = MODO_ENVIO.get() if MODO_ENVIO else "selenium"
+    sufixo = "_DRYRUN" if modo == "dry-run" else ""
+    log_file_path = os.path.join(log_dir, f"{modelo}{sufixo}_log_{timestamp}.txt")
     with open(log_file_path, 'w', encoding='utf-8') as f:
-        f.write(f"=== Log AutoMessenger ONE - {timestamp} ===\n\n")
+        f.write(f"=== Log AutoMessenger ONE - {timestamp} ===\n")
+        f.write(f"Modelo: {modelo} | Modo de envio: {modo}\n")
+        if modo == "dry-run":
+            f.write("SIMULACAO - nenhuma mensagem foi enviada.\n")
+        f.write("\n")
     return log_file_path
 
 def atualizar_log(mensagem, cor=None):
@@ -1863,7 +2135,7 @@ def fechar_chrome_agendamento():
 def main():
     global janela, caminho_excel, modelo_selecionado, mensagem_selecionada, botao_iniciar, botao_fechar, log_text, progresso, progresso_texto, entrada_linha_inicial, botao_iniciar_chrome, anexo_habilitado, caminho_anexo
     global entrada_data, entrada_hora, botao_agendar, botao_cancelar_agendamento, label_contagem
-    global perfil_selecionado, botao_tema
+    global perfil_selecionado, botao_tema, MODO_ENVIO
 
     # Constantes de estilo compacto
     H_INPUT = 28
@@ -1968,6 +2240,32 @@ def main():
 
     botao_iniciar_chrome = ctk.CTkButton(frame_row1, text="Chrome Automação", command=iniciar_chrome_automacao, width=70, height=H_BTN, font=FONT_LABEL, fg_color="#4a5568", hover_color="#2d3748")
     botao_iniciar_chrome.pack(side="left")
+
+    # Linha 1b: Modo de envio (dry-run por padrão, para não enviar por acidente)
+    frame_row1b = ctk.CTkFrame(frame_esquerda, fg_color="transparent")
+    frame_row1b.pack(fill="x", padx=PAD_X, pady=(0, PAD_Y_ROW))
+
+    ctk.CTkLabel(frame_row1b, text="Envio", font=FONT_LABEL, text_color="gray").pack(side="left")
+    MODO_ENVIO = ctk.StringVar(value=MODO_PADRAO)
+    combo_modo = ctk.CTkComboBox(frame_row1b, values=["dry-run", "selenium", "api"],
+                                 variable=MODO_ENVIO, width=100, height=H_INPUT,
+                                 font=FONT_LABEL, state="readonly")
+    combo_modo.pack(side="left", padx=(6, 10))
+
+    label_modo = ctk.CTkLabel(frame_row1b, text="", font=FONT_LABEL, text_color="gray")
+    label_modo.pack(side="left")
+
+    def _descrever_modo(*args):
+        modo = MODO_ENVIO.get()
+        if modo == "dry-run":
+            label_modo.configure(text="simula, não envia nada", text_color="#4ade80")
+        elif modo == "api":
+            label_modo.configure(text="ENVIA de verdade, via API", text_color="#f87171")
+        else:
+            label_modo.configure(text="ENVIA de verdade, pela tela", text_color="#f87171")
+
+    MODO_ENVIO.trace_add("write", _descrever_modo)
+    _descrever_modo()
 
     # Linha 2: Excel
     frame_row2 = ctk.CTkFrame(frame_esquerda, fg_color="transparent")

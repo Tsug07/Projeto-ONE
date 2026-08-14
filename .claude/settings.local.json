@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find c:UsersVM001DesktopHugoRPAProjeto-ONE -name *.py -type f)"
+    ]
+  }
+}
