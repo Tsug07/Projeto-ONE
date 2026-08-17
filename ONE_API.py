@@ -73,7 +73,9 @@ KEEP_ALIVE_INTERVALO = 30 * 60 * 1000  # 30 minutos em milissegundos
 
 # Modelo ALL_info: agrupar empresas do mesmo contato Onvio em UMA mensagem (True)
 # ou enviar UMA mensagem por empresa/linha do Excel (False).
-AGRUPAR_POR_CONTATO = False
+# Com True, um contato com N empresas recebe UMA mensagem e a versao _multi do
+# template e usada (ex.: SemReceita_multi, com {empresas_cnpj}).
+AGRUPAR_POR_CONTATO = True
 
 # Pausa (segundos) entre um contato e o próximo, em todos os modelos.
 # Soma-se aos ~5s internos do envio (no modo selenium), então o intervalo real
